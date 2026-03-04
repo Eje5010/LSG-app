@@ -78,7 +78,7 @@ function renderStudy(date) {
         }
         // Final cleaning for URL compatibility
         cleanRef = cleanRef.replace(/\s+/g, '.').replace(/:/g, '.');
-        const deepLink = `https://www.bible.com/bible/111/${cleanRef}`; 
+        const deepLink = `https://www.bible.com/bible/${cleanRef}`; 
         
         return `<div style="margin-bottom:15px;"><p class="scripture">${p}</p><a href="${deepLink}" target="_blank" class="bible-link-btn">📖 Open in Bible App</a></div>`;
     }).join('');
