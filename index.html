@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LSG Portal</title>
+    <title>Bible Study Portal</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <nav class="navbar">
-        <h1>Lansdale Small Group</h1>
+        <h1>Faith & Fellowship</h1>
         <div class="nav-controls">
             <label class="theme-switch" title="Toggle Dark Mode">
                 <input type="checkbox" id="theme-toggle">
@@ -30,7 +30,7 @@
         <div id="content-display">
             <section class="card">
                 <h2>Passages</h2>
-                <div id="passage-text"><p class="scripture">Loading...</p></div>
+                <div id="passage-text"><p class="scripture">Loading study content...</p></div>
             </section>
 
             <section class="card">
@@ -70,12 +70,12 @@
             <label>Meeting Date:</label>
             <input type="date" id="newDate">
             <label>Passages (One per line):</label>
-            <textarea id="newPassage" rows="3" placeholder="John 3:16"></textarea>
+            <textarea id="newPassage" rows="3" placeholder="John 3:16&#10;Psalm 23"></textarea>
             <label>YouTube Link:</label>
-            <input type="text" id="newVideoUrl">
-            <label>Activity:</label>
+            <input type="text" id="newVideoUrl" placeholder="https://www.youtube.com/watch?v=...">
+            <label>Activity Description:</label>
             <textarea id="newActivity" rows="3"></textarea>
-            <label>Lyrics:</label>
+            <label>Song Lyrics:</label>
             <textarea id="newLyrics" rows="5"></textarea>
             
             <div style="display: flex; gap: 10px; margin-top: 15px;">

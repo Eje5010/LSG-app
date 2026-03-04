@@ -1,6 +1,6 @@
 {
-  "short_name": "BibleStudy",
-  "name": "Our Bible Study Portal",
+  "short_name": "LansdaleSmallGroup",
+  "name": "LSG Portal",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#2c3e50",
