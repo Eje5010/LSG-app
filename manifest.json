@@ -1,0 +1,15 @@
+{
+  "short_name": "BibleStudy",
+  "name": "Our Bible Study Portal",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2c3e50",
+  "background_color": "#f4f7f6",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2903/2903521.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

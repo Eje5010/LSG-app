@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lansdale Small Group Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Faith & Fellowship</h1>
+        <div class="nav-controls">
+            <label class="theme-switch" title="Toggle Dark Mode">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider"></span>
+            </label>
+            <button id="adminBtn">Admin</button>
+        </div>
+    </nav>
+
+    <main id="app">
+        <section class="archive-selector no-print">
+            <select id="study-date"></select>
+            <button onclick="window.print()" class="ui-btn">🖨️ Print</button>
+            <button onclick="window.shareStudy()" class="ui-btn share-btn">🔗 Share</button>
+        </section>
+
+        <div id="content-display">
+            <section class="card">
+                <h2>Passage</h2>
+                <p id="passage-text" class="scripture">Loading...</p>
+                <a id="open-bible-app" href="#" target="_blank" class="bible-link-btn">📖 Open in Bible App</a>
+            </section>
+
+            <section class="card">
+                <h2>Worship</h2>
+                <div id="video-wrapper"></div>
+                <h3>Lyrics</h3>
+                <pre id="lyrics-container"></pre>
+            </section>
+
+            <section class="card">
+                <h2>Activity</h2>
+                <p id="activity-desc"></p>
+            </section>
+
+            <section class="card no-print">
+                <h2>Prayer Requests</h2>
+                <div id="prayer-list" class="prayer-scroll"></div>
+                <hr>
+                <div class="prayer-input">
+                    <input type="text" id="prayerName" placeholder="Your Name">
+                    <label class="anon-label"><input type="checkbox" id="anonToggle"> Post Anonymously</label>
+                    <textarea id="prayerText" placeholder="What can we pray for?"></textarea>
+                    <button onclick="window.postPrayer()" class="post-btn">Post Request</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <h3>Add New Study</h3>
+            <input type="date" id="newDate">
+            <input type="text" id="newPassage" placeholder="Passage (e.g., John 3:16)">
+            <input type="text" id="newVideoUrl" placeholder="YouTube Link (optional)">
+            <textarea id="newActivity" placeholder="Meeting Activity..."></textarea>
+            <textarea id="newLyrics" placeholder="Song Lyrics..."></textarea>
+            <button id="saveStudyBtn" class="post-btn">Post Study</button>
+            <button onclick="document.getElementById('adminModal').style.display='none'" class="ui-btn">Close</button>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

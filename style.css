@@ -1,0 +1,37 @@
+:root {
+    --bg: #f4f7f6;
+    --card: #ffffff;
+    --text: #333333;
+    --accent: #2c3e50;
+    --btn: #3498db;
+}
+
+[data-theme="dark"] {
+    --bg: #1a1a1a;
+    --card: #2d2d2d;
+    --text: #eeeeee;
+    --accent: #000000;
+}
+
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; line-height: 1.6; }
+.navbar { background: var(--accent); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+#app { max-width: 650px; margin: auto; padding: 20px; }
+.card { background: var(--card); padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.scripture { font-size: 1.25rem; font-style: italic; border-left: 5px solid var(--btn); padding-left: 20px; color: var(--btn); }
+pre { white-space: pre-wrap; font-family: inherit; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; }
+
+.bible-link-btn { display: inline-block; background: #5d4037; color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; margin-top: 10px; }
+.ui-btn, .post-btn { padding: 8px 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
+.share-btn { background: #27ae60; color: white; }
+.post-btn { background: var(--btn); color: white; width: 100%; margin-top: 10px; }
+
+.prayer-scroll { max-height: 300px; overflow-y: auto; margin-bottom: 20px; }
+.prayer-item { background: rgba(0,0,0,0.05); padding: 12px; border-radius: 10px; margin-bottom: 10px; position: relative; }
+.delete-btn { display: none; background: #e74c3c; color: white; border: none; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; }
+.show-admin .delete-btn { display: block; }
+
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; }
+.modal-content { background: var(--card); margin: 5% auto; padding: 30px; width: 90%; max-width: 500px; border-radius: 15px; }
+input, textarea { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+
+@media print { .no-print, .navbar, .ui-btn, .delete-btn { display: none !important; } .card { box-shadow: none; border: 1px solid #ddd; } }
