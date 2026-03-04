@@ -48,7 +48,15 @@ onValue(studiesRef, (snap) => {
     if (data) {
         allStudiesRawData = data;
         const sorted = Object.entries(data).sort((a,b) => new Date(b[1].date) - new Date(a[1].date));
-        document.getElementById('study-date').innerHTML = sorted.map(([id, s]) => `<option value="${s.date}">${new Date(s.date).toDateString()}</option>`).join('');
+        // Inside onValue(studiesRef, (snap) => { ... })
+		document.getElementById('study-date').innerHTML = sorted.map(([id, s]) => {
+			// Instead of new Date(s.date).toDateString(), 
+			// we split the string to avoid timezone shifting.
+			const [year, month, day] = s.date.split('-');
+			const displayDate = new Date(year, month - 1, day).toDateString();
+			
+			return `<option value="${s.date}">${displayDate}</option>`;
+		}).join('');
         renderStudy(sorted[0][1].date);
     }
 });
@@ -128,8 +136,15 @@ document.getElementById('editStudyBtn').onclick = () => {
     document.getElementById('adminModal').style.display = 'block';
 };
 document.getElementById('saveStudyBtn').onclick = async () => {
-    const d = { date: document.getElementById('newDate').value, passage: document.getElementById('newPassage').value, 
-                activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value, lastModified: Date.now() };
+    const dateInput = document.getElementById('newDate').value; // e.g., "2026-03-04"
+    
+    const d = { 
+        date: dateInput, 
+        passage: document.getElementById('newPassage').value, 
+        activity: document.getElementById('newActivity').value, 
+        lyrics: document.getElementById('newLyrics').value, 
+        lastModified: Date.now() 
+    };
     await set(currentStudyId ? ref(db, `studies/${currentStudyId}`) : push(studiesRef), d);
     document.getElementById('adminModal').style.display = 'none';
 };
