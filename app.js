@@ -97,28 +97,38 @@ function renderPrayers(data) {
 }
 
 window.shareStudy = function() {
+    // 1. Grab data instantly (No 'await')
     const dateSelect = document.getElementById('study-date');
-    const selectedDate = dateSelect.options[dateSelect.selectedIndex]?.text || "Study";
+    const selectedDate = (dateSelect && dateSelect.options.length > 0) 
+        ? dateSelect.options[dateSelect.selectedIndex].text 
+        : "Study";
     
-    const shareText = `📖 LSG Portal: ${selectedDate}\nCheck out this week's study and prayer requests:`;
-    const shareUrl = window.location.origin + window.location.pathname;
+    const shareData = {
+        title: 'LSG Portal',
+        text: `📖 LSG Portal: ${selectedDate}\nCheck out this week's study and prayer requests:`,
+        url: window.location.origin + window.location.pathname
+    };
 
-    // Mobile Native Share
+    // 2. Immediate Execution
     if (navigator.share) {
-        navigator.share({
-            title: 'LSG Portal',
-            text: shareText,
-            url: shareUrl
-        }).catch(err => {
-            // If they cancel the share, don't show an error
-            console.log("Share cancelled or failed");
-        });
+        navigator.share(shareData)
+            .then(() => console.log('Successful share'))
+            .catch((error) => {
+                // If it fails in Chrome, it's often because of the URL format
+                // We fallback to clipboard immediately
+                copyToClipboardFallback(shareData);
+            });
     } else {
-        // Desktop / Fallback
-        navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-        alert("Link copied to clipboard!");
+        copyToClipboardFallback(shareData);
     }
 };
+
+// Separate helper function to keep the main one clean
+function copyToClipboardFallback(data) {
+    const fullText = `${data.text}\n${data.url}`;
+    navigator.clipboard.writeText(fullText);
+    alert("Link copied to clipboard!");
+}
 
 window.postPrayer = async () => {
     const text = document.getElementById('prayerText').value;
