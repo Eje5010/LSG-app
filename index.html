@@ -15,7 +15,7 @@
                 <input type="checkbox" id="theme-toggle">
                 <span class="slider"></span>
             </label>
-            <button id="adminBtn">Admin</button>
+            <button id="adminBtn" onclick="window.openAdmin()">Admin</button>
         </div>
     </nav>
 
@@ -30,9 +30,7 @@
         <div id="content-display">
             <section class="card">
                 <h2>Passages</h2>
-                <div id="passage-text">
-                    <p class="scripture">Loading study...</p>
-                </div>
+                <div id="passage-text"><p class="scripture">Loading...</p></div>
             </section>
 
             <section class="card">
@@ -60,6 +58,7 @@
             <section class="card">
                 <h2>Worship</h2>
                 <div id="video-wrapper"></div>
+                <h3>Lyrics</h3>
                 <pre id="lyrics-container"></pre>
             </section>
         </div>
@@ -70,6 +69,23 @@
             <h3 id="modalTitle">Manage Study</h3>
             <label>Meeting Date:</label>
             <input type="date" id="newDate">
-            
             <label>Passages (One per line):</label>
-            <textarea id="newPassage" rows="3" placeholder="Example:&#10;Matthew 8:3-10&#10;Psalm 23"></
+            <textarea id="newPassage" rows="3" placeholder="John 3:16"></textarea>
+            <label>YouTube Link:</label>
+            <input type="text" id="newVideoUrl">
+            <label>Activity:</label>
+            <textarea id="newActivity" rows="3"></textarea>
+            <label>Lyrics:</label>
+            <textarea id="newLyrics" rows="5"></textarea>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button id="saveStudyBtn" class="post-btn" style="margin-top:0;">Save Study</button>
+                <button id="deleteStudyBtn" class="admin-only ui-btn" style="background:#e74c3c; color:white;">🗑️ Delete</button>
+            </div>
+            <button onclick="document.getElementById('adminModal').style.display='none'" class="ui-btn" style="width:100%; margin-top:10px;">Cancel</button>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
