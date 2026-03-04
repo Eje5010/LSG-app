@@ -96,34 +96,27 @@ function renderPrayers(data) {
     document.getElementById('loadMorePrayers').style.display = all.length > visible.length ? 'block' : 'none';
 }
 
-window.shareStudy = async () => {
-    // 1. Get the current study date from the dropdown
+window.shareStudy = function() {
     const dateSelect = document.getElementById('study-date');
+    const selectedDate = dateSelect.options[dateSelect.selectedIndex]?.text || "Study";
     
-    // 2. Create a friendly title, or use a fallback if the list is empty
-    let dateText = "This week's study";
-    if (dateSelect && dateSelect.options.length > 0 && dateSelect.selectedIndex !== -1) {
-        dateText = dateSelect.options[dateSelect.selectedIndex].text;
-    }
-    
-    const shareData = {
-        title: 'LSG Portal',
-        text: `📖 Lansdale Small Group - ${dateText}\nCheck out this week's study and prayer requests:`,
-        url: window.location.href.split('?')[0] // Shares the clean URL without "?page=prayers"
-    };
+    const shareText = `📖 LSG Portal: ${selectedDate}\nCheck out this week's study and prayer requests:`;
+    const shareUrl = window.location.origin + window.location.pathname;
 
-    try {
-        // Try the mobile-style native share first (works on iPhone/Android)
-        if (navigator.share) {
-            await navigator.share(shareData);
-        } else {
-            // Fallback for PC/Desktop: Just copy to clipboard
-            const fullText = `${shareData.text}\n${shareData.url}`;
-            await navigator.clipboard.writeText(fullText);
-            alert("Link and study info copied to clipboard!");
-        }
-    } catch (err) {
-        console.error("Share failed:", err);
+    // Mobile Native Share
+    if (navigator.share) {
+        navigator.share({
+            title: 'LSG Portal',
+            text: shareText,
+            url: shareUrl
+        }).catch(err => {
+            // If they cancel the share, don't show an error
+            console.log("Share cancelled or failed");
+        });
+    } else {
+        // Desktop / Fallback
+        navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+        alert("Link copied to clipboard!");
     }
 };
 
