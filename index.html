@@ -16,6 +16,7 @@
                 <span class="slider"></span>
             </label>
             <button id="adminBtn">Admin</button>
+			<button id="editStudyBtn" class="admin-only ui-btn" style="margin-left: 10px;">✏️ Edit This Study</button>
         </div>
     </nav>
 
@@ -34,9 +35,8 @@
             </section>
 
             <section class="card">
-                <h2>Worship</h2>
+                <h2>Worship Lyrics</h2>
                 <div id="video-wrapper"></div>
-                <h3>Lyrics</h3>
                 <pre id="lyrics-container"></pre>
             </section>
 
@@ -63,11 +63,12 @@
         <div class="modal-content">
             <h3>Add New Study</h3>
             <input type="date" id="newDate">
-            <input type="text" id="newPassage" placeholder="Passage (e.g., John 3:16)">
+            <textarea id="newPassage" placeholder="List passages (one per line, e.g. John 3:16)"></textarea>
             <input type="text" id="newVideoUrl" placeholder="YouTube Link (optional)">
             <textarea id="newActivity" placeholder="Meeting Activity..."></textarea>
             <textarea id="newLyrics" placeholder="Song Lyrics..."></textarea>
             <button id="saveStudyBtn" class="post-btn">Post Study</button>
+			<button id="deleteStudyBtn" class="admin-only ui-btn" style="background:#e74c3c; color:white; margin-top:10px;">🗑️ Delete Entire Study</button>
             <button onclick="document.getElementById('adminModal').style.display='none'" class="ui-btn">Close</button>
         </div>
     </div>
