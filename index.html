@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bible Study Portal</title>
+    <title>LSG Portal</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <nav class="navbar">
-        <h1>Faith & Fellowship</h1>
+        <h1>Lansdale Small Group Portal</h1>
         <div class="nav-controls">
             <label class="theme-switch" title="Toggle Dark Mode">
                 <input type="checkbox" id="theme-toggle">
@@ -19,47 +19,54 @@
         </div>
     </nav>
 
+    <nav class="bottom-nav">
+        <button onclick="window.setPage('studies')" id="nav-studies">📖 Study</button>
+        <button onclick="window.setPage('prayers')" id="nav-prayers" style="position: relative;">
+            🙏 Prayers
+            <span id="prayer-dot" class="notification-dot" style="display: none;"></span>
+        </button>
+    </nav>
+
     <main id="app">
-        <section class="archive-selector no-print">
-            <select id="study-date"></select>
-            <button onclick="window.shareStudy()" class="ui-btn share-btn">🔗 Share</button>
-            <button id="editStudyBtn" class="admin-only ui-btn">✏️ Edit Study</button>
-            <button onclick="window.openNewStudyModal()" class="admin-only ui-btn" style="background:#27ae60; color:white;">➕ New</button>
-        </section>
-
-        <div id="content-display">
-            <section class="card">
-                <h2>Passages</h2>
-                <div id="passage-text"><p class="scripture">Loading study content...</p></div>
+        <div id="view-studies" class="page-view">
+            <section class="archive-selector no-print">
+                <select id="study-date"></select>
+                <button onclick="window.shareStudy()" class="ui-btn share-btn">🔗 Share</button>
+                <button id="editStudyBtn" class="admin-only ui-btn">✏️ Edit</button>
+                <button onclick="window.openNewStudyModal()" class="admin-only ui-btn" style="background:#27ae60; color:white;">➕ New</button>
             </section>
 
-            <section class="card">
-                <h2>Activity</h2>
-                <p id="activity-desc"></p>
-                <div class="no-print" style="margin-top:15px;">
-                    <button onclick="window.print()" class="ui-btn">🖨️ Print Study Guide</button>
-                </div>
-            </section>
+            <div id="study-content">
+                <section class="card">
+                    <h2>Passages</h2>
+                    <div id="passage-text"></div>
+                </section>
+                <section class="card">
+                    <h2>Activity</h2>
+                    <p id="activity-desc"></p>
+                </section>
+                <section class="card">
+                    <h2>Worship Lyrics</h2>
+                    <pre id="lyrics-container"></pre>
+                </section>
+            </div>
+        </div>
 
+        <div id="view-prayers" class="page-view" style="display:none;">
+            <section class="card">
+                <h2>Prayer Wall</h2>
+                <div id="prayer-list"></div>
+                <button id="loadMorePrayers" onclick="window.loadMorePrayers()" class="ui-btn" style="width:100%; margin-top:10px; display:none;">Show Older Prayers</button>
+            </section>
+            
             <section class="card no-print">
-                <h2>Prayer Requests</h2>
-                <div id="prayer-list" class="prayer-scroll"></div>
-                <hr>
+                <h3>Post a Request</h3>
                 <div class="prayer-input">
                     <input type="text" id="prayerName" placeholder="Your Name">
-                    <div style="margin: 5px 0;">
-                        <label class="anon-label"><input type="checkbox" id="anonToggle"> Post Anonymously</label>
-                    </div>
+                    <label class="anon-label"><input type="checkbox" id="anonToggle"> Post Anonymously</label>
                     <textarea id="prayerText" placeholder="What can we pray for?"></textarea>
                     <button onclick="window.postPrayer()" class="post-btn">Post Request</button>
                 </div>
-            </section>
-
-            <section class="card">
-                <h2>Worship</h2>
-                <div id="video-wrapper"></div>
-                <h3>Lyrics</h3>
-                <pre id="lyrics-container"></pre>
             </section>
         </div>
     </main>
@@ -71,8 +78,6 @@
             <input type="date" id="newDate">
             <label>Passages (One per line):</label>
             <textarea id="newPassage" rows="3" placeholder="John 3:16&#10;Psalm 23"></textarea>
-            <label>YouTube Link:</label>
-            <input type="text" id="newVideoUrl" placeholder="https://www.youtube.com/watch?v=...">
             <label>Activity Description:</label>
             <textarea id="newActivity" rows="3"></textarea>
             <label>Song Lyrics:</label>
