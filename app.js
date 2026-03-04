@@ -26,6 +26,12 @@ let daysToDisplay = 14;
 let myId = localStorage.getItem('lsg_user_id') || ('user_' + Math.random().toString(36).substr(2, 9));
 localStorage.setItem('lsg_user_id', myId);
 
+// --- BIBLE BOOK DICTIONARY ---
+const bibleMap = {
+    "GENESIS":"GEN","EXODUS":"EXO","LEVITICUS":"LEV","NUMBERS":"NUM","DEUTERONOMY":"DEU","JOSHUA":"JOS","JUDGES":"JDG","RUTH":"RUT","1 SAMUEL":"1SA","2 SAMUEL":"2SA","1 KINGS":"1KI","2 KINGS":"2KI","1 CHRONICLES":"1CH","2 CHRONICLES":"2CH","EZRA":"EZR","NEHEMIAH":"NEH","ESTHER":"EST","JOB":"JOB","PSALMS":"PSA","PSALM":"PSA","PROVERBS":"PRO","ECCLESIASTES":"ECC","SONG OF SOLOMON":"SNG","SONG OF SONGS":"SNG","ISAIAH":"ISA","JEREMIAH":"JER","LAMENTATIONS":"LAM","EZEKIEL":"EZK","DANIEL":"DAN","HOSEA":"HOS","JOEL":"JOL","AMOS":"AMO","OBADIAH":"OBA","JONAH":"JON","MICAH":"MIC","NAHUM":"NAM","HABAKKUK":"HAB","ZEPHANIAH":"ZEP","HAGGAI":"HAG","ZECHARIAH":"ZEC","MALACHI":"MAL",
+    "MATTHEW":"MAT","MARK":"MRK","LUKE":"LUK","JOHN":"JHN","ACTS":"ACT","ROMANS":"ROM","1 CORINTHIANS":"1CO","2 CORINTHIANS":"2CO","GALATIANS":"GAL","EPHESIANS":"EPH","PHILIPPIANS":"PHP","COLOSSIANS":"COL","1 THESSALONIANS":"1TH","2 THESSALONIANS":"2TH","1 TIMOTHY":"1TI","2 TIMOTHY":"2TI","TITUS":"TIT","PHILEMON":"PHM","HEBREWS":"HEB","JAMES":"JAS","1 PETER":"1PE","2 PETER":"2PE","1 JOHN":"1JN","2 JOHN":"2JN","3 JOHN":"3JN","JUDE":"JUD","REVELATION":"REV"
+};
+
 window.setPage = (page) => {
     document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
     document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
@@ -50,47 +56,29 @@ onValue(studiesRef, (snap) => {
 function renderStudy(date) {
     const entry = Object.entries(allStudiesRawData).find(([id, s]) => s.date === date);
     if (!entry) return;
-    const [id, s] = entry; 
-    currentStudyId = id;
-    
+    const [id, s] = entry; currentStudyId = id;
     const passages = (s.passage || "").split('\n').filter(p => p.trim() !== "");
     
     document.getElementById('passage-text').innerHTML = passages.map(p => {
-        // 1. Clean the reference for the Deep Link
-        // We turn "Matthew 8:3-10" into "MAT.8.3-10"
-        let cleanRef = p.replace(/\s+/g, '.').replace(/:/g, '.').toUpperCase();
-        
-        // Abbreviation fix (Optional but helpful for YouVersion)
-        // If the user types "Matthew", YouVersion likes "MAT"
-        const books = {"MATTHEW": "MAT", "GENESIS": "GEN", "PSALM": "PSA", "PROVERBS": "PRO"}; 
-        for (let full in books) {
+        let cleanRef = p.toUpperCase().trim();
+        // Replace full names with 3-letter codes
+        for (let full in bibleMap) {
             if (cleanRef.startsWith(full)) {
-                cleanRef = cleanRef.replace(full, books[full]);
+                cleanRef = cleanRef.replace(full, bibleMap[full]);
+                break; 
             }
         }
-
-        // 2. Use the 'bible' path instead of 'search'
-        // This tells the app: "Go to this specific coordinate"
+        // Final cleaning for URL compatibility
+        cleanRef = cleanRef.replace(/\s+/g, '.').replace(/:/g, '.');
         const deepLink = `https://www.bible.com/bible/111/${cleanRef}`; 
-        // Note: '111' is NIV. If you want it to use the user's default, 
-        // you can try: `https://www.bible.com/bible/${cleanRef}`
-
-        return `
-            <div style="margin-bottom:15px;">
-                <p class="scripture">${p}</p>
-                <a href="${deepLink}" target="_blank" class="bible-link-btn">
-                    📖 Open in Bible App
-                </a>
-            </div>
-        `;
+        
+        return `<div style="margin-bottom:15px;"><p class="scripture">${p}</p><a href="${deepLink}" target="_blank" class="bible-link-btn">📖 Open in Bible App</a></div>`;
     }).join('');
 
     document.getElementById('activity-desc').innerText = s.activity || '';
     document.getElementById('lyrics-container').innerText = s.lyrics || '';
     document.getElementById('last-updated-text').innerText = s.lastModified ? `Updated: ${new Date(s.lastModified).toLocaleString()}` : '';
 }
-
-window.loadMorePrayers = () => { daysToDisplay += 14; renderPrayers(allPrayersData); };
 
 onValue(prayersRef, (snap) => { allPrayersData = snap.val(); renderPrayers(allPrayersData); });
 
@@ -111,52 +99,9 @@ function renderPrayers(data) {
     const visible = all.filter(p => p.timestamp > cutoff).sort((a,b) => b.timestamp - a.timestamp);
     document.getElementById('prayer-list').innerHTML = visible.map(p => {
         const canDelete = isAdmin || (p.ownerId === myId);
-        return `
-            <div class="prayer-item">
-                ${canDelete ? `<button class="delete-btn" onclick="window.deletePrayer('${p.id}')">Delete</button>` : ''}
-                <strong>${p.name} <small>(${new Date(p.timestamp).toLocaleDateString()})</small></strong>
-                <p>${p.request}</p>
-                <div class="prayer-actions">
-                    <button class="prayed-btn" onclick="window.incrementPrayerTally('${p.id}')">I Prayed!</button>
-                    ${p.tally ? `<span class="tally-count">🙏 ${p.tally}</span>` : ''}
-                </div>
-            </div>`;
+        return `<div class="prayer-item">${canDelete ? `<button class="delete-btn" onclick="window.deletePrayer('${p.id}')">Delete</button>` : ''}<strong>${p.name} <small>(${new Date(p.timestamp).toLocaleDateString()})</small></strong><p>${p.request}</p><div class="prayer-actions"><button class="prayed-btn" onclick="window.incrementPrayerTally('${p.id}')">I Prayed!</button>${p.tally ? `<span class="tally-count">🙏 ${p.tally}</span>` : ''}</div></div>`;
     }).join('');
     document.getElementById('loadMorePrayers').style.display = all.length > visible.length ? 'block' : 'none';
-}
-
-window.shareStudy = function() {
-    // 1. Grab data instantly (No 'await')
-    const dateSelect = document.getElementById('study-date');
-    const selectedDate = (dateSelect && dateSelect.options.length > 0) 
-        ? dateSelect.options[dateSelect.selectedIndex].text 
-        : "Study";
-    
-    const shareData = {
-        title: 'LSG Portal',
-        text: `📖 LSG Portal: ${selectedDate}\nCheck out this week's study and prayer requests:`,
-        url: window.location.origin + window.location.pathname
-    };
-
-    // 2. Immediate Execution
-    if (navigator.share) {
-        navigator.share(shareData)
-            .then(() => console.log('Successful share'))
-            .catch((error) => {
-                // If it fails in Chrome, it's often because of the URL format
-                // We fallback to clipboard immediately
-                copyToClipboardFallback(shareData);
-            });
-    } else {
-        copyToClipboardFallback(shareData);
-    }
-};
-
-// Separate helper function to keep the main one clean
-function copyToClipboardFallback(data) {
-    const fullText = `${data.text}\n${data.url}`;
-    navigator.clipboard.writeText(fullText);
-    alert("Link copied to clipboard!");
 }
 
 window.postPrayer = async () => {
@@ -189,6 +134,14 @@ document.getElementById('saveStudyBtn').onclick = async () => {
     document.getElementById('adminModal').style.display = 'none';
 };
 document.getElementById('deleteStudyBtn').onclick = async () => { if(confirm("Delete week?")) await set(ref(db, `studies/${currentStudyId}`), null); };
+
+window.shareStudy = function() {
+    const dateSelect = document.getElementById('study-date');
+    const selectedDate = dateSelect.options[dateSelect.selectedIndex]?.text || "Study";
+    const shareData = { title: 'LSG Portal', text: `📖 LSG Portal: ${selectedDate}\nCheck out this week's study:`, url: window.location.origin + window.location.pathname };
+    if (navigator.share) navigator.share(shareData).catch(() => {});
+    else { navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`); alert("Link copied!"); }
+};
 document.getElementById('study-date').onchange = (e) => renderStudy(e.target.value);
 document.getElementById('theme-toggle').onchange = (e) => document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
 window.setPage('studies');
