@@ -96,6 +96,37 @@ function renderPrayers(data) {
     document.getElementById('loadMorePrayers').style.display = all.length > visible.length ? 'block' : 'none';
 }
 
+window.shareStudy = async () => {
+    // 1. Get the current study date from the dropdown
+    const dateSelect = document.getElementById('study-date');
+    
+    // 2. Create a friendly title, or use a fallback if the list is empty
+    let dateText = "This week's study";
+    if (dateSelect && dateSelect.options.length > 0 && dateSelect.selectedIndex !== -1) {
+        dateText = dateSelect.options[dateSelect.selectedIndex].text;
+    }
+    
+    const shareData = {
+        title: 'LSG Portal',
+        text: `📖 Lansdale Small Group - ${dateText}\nCheck out this week's study and prayer requests:`,
+        url: window.location.href.split('?')[0] // Shares the clean URL without "?page=prayers"
+    };
+
+    try {
+        // Try the mobile-style native share first (works on iPhone/Android)
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            // Fallback for PC/Desktop: Just copy to clipboard
+            const fullText = `${shareData.text}\n${shareData.url}`;
+            await navigator.clipboard.writeText(fullText);
+            alert("Link and study info copied to clipboard!");
+        }
+    } catch (err) {
+        console.error("Share failed:", err);
+    }
+};
+
 window.postPrayer = async () => {
     const text = document.getElementById('prayerText').value;
     if(!text.trim()) return alert("Enter request.");
