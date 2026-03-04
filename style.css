@@ -3,9 +3,20 @@
 
 body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; padding-bottom: 70px; }
 .navbar { background: var(--accent); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-.navbar h1 { font-size: 1rem; margin: 0; }
+.navbar h1 { font-size: 0.9rem; margin: 0; }
+
+/* Theme Toggle Styling */
+.theme-container { display: flex; align-items: center; gap: 8px; margin-right: 10px; }
+.theme-label { font-size: 0.7rem; font-weight: bold; opacity: 0.8; }
+.theme-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+.theme-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--btn); }
+input:checked + .slider:before { transform: translateX(14px); }
+
 #app { max-width: 650px; margin: auto; padding: 20px; }
-.card { background: var(--card); padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; }
+.card { background: var(--card); padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
 .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--accent); display: flex; height: 60px; z-index: 1000; border-top: 1px solid rgba(255,255,255,0.1); }
 .bottom-nav button { flex: 1; background: none; border: none; color: rgba(255,255,255,0.5); font-weight: bold; cursor: pointer; }
@@ -33,7 +44,6 @@ pre { white-space: pre-wrap; background: rgba(0,0,0,0.03); padding: 15px; border
 
 .admin-only { display: none; }
 .show-admin .admin-only { display: block; }
-
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; }
 .modal-content { background: var(--card); margin: 5% auto; padding: 25px; width: 90%; max-width: 450px; border-radius: 15px; max-height: 80vh; overflow-y: auto; }
 input, textarea { width: 100%; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }

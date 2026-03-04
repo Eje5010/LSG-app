@@ -12,10 +12,13 @@
     <nav class="navbar">
         <h1>Lansdale Small Group Portal</h1>
         <div class="nav-controls">
-            <label class="theme-switch" title="Toggle Dark Mode">
-                <input type="checkbox" id="theme-toggle">
-                <span class="slider"></span>
-            </label>
+            <div class="theme-container">
+                <span class="theme-label">Dark Mode</span>
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
             <button id="adminBtn" onclick="window.openAdmin()">Admin</button>
         </div>
     </nav>
@@ -38,23 +41,26 @@
             </section>
 
             <div id="study-content">
-                <section id="study-meal-card" class="card" style="display:none; border: 2px solid #f1c40f;">
+                <section class="card">
+                    <h2>Passages</h2>
+                    <div id="passage-text"></div>
+                </section>
+
+                <section class="card">
+                    <h2>Activity</h2>
+                    <p id="activity-desc"></p>
+                </section>
+
+                <section id="study-meal-card" class="card" style="display:none;">
                     <h2>Wednesday Meal</h2>
                     <div id="study-meal-info"></div>
                 </section>
 
                 <section class="card">
-                    <h2>Passages</h2>
-                    <div id="passage-text"></div>
-                </section>
-                <section class="card">
-                    <h2>Activity</h2>
-                    <p id="activity-desc"></p>
-                </section>
-                <section class="card">
                     <h2>Worship Lyrics</h2>
                     <pre id="lyrics-container"></pre>
                 </section>
+                
                 <p id="last-updated-text" style="text-align: center; font-size: 0.75rem; color: #888; margin-top: -10px;"></p>
             </div>
         </div>
