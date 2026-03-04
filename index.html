@@ -32,19 +32,20 @@
         <div id="view-studies" class="page-view">
             <section class="archive-selector no-print">
                 <select id="study-date"></select>
+
                 <button onclick="window.shareStudy()" class="ui-btn share-btn">🔗 Share</button>
                 <button id="editStudyBtn" class="admin-only ui-btn">✏️ Edit</button>
                 <button onclick="window.openNewStudyModal()" class="admin-only ui-btn" style="background:#27ae60; color:white;">➕ New</button>
             </section>
 
             <div id="study-content">
+				<section class="card">
+                    <h2>Activity</h2>
+                    <p id="activity-desc"></p>
+                </section>
                 <section class="card">
                     <h2>Passages</h2>
                     <div id="passage-text"></div>
-                </section>
-                <section class="card">
-                    <h2>Activity</h2>
-                    <p id="activity-desc"></p>
                 </section>
                 <section class="card">
                     <h2>Worship Lyrics</h2>
