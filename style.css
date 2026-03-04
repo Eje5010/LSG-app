@@ -29,7 +29,15 @@ pre { white-space: pre-wrap; font-family: inherit; background: rgba(0,0,0,0.03);
 .prayer-item { background: rgba(0,0,0,0.05); padding: 12px; border-radius: 10px; margin-bottom: 10px; position: relative; }
 .delete-btn { display: none; background: #e74c3c; color: white; border: none; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; }
 .show-admin .delete-btn { display: block; }
+.passage-group {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed rgba(0,0,0,0.1);
+}
 
+.passage-group:last-child {
+    border-bottom: none;
+}
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; }
 .modal-content { background: var(--card); margin: 5% auto; padding: 30px; width: 90%; max-width: 500px; border-radius: 15px; }
 input, textarea { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }

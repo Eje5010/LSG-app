@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lansdale Small Group Portal</title>
+    <title>LSG Portal</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -16,33 +16,31 @@
                 <span class="slider"></span>
             </label>
             <button id="adminBtn">Admin</button>
-			<button id="editStudyBtn" class="admin-only ui-btn" style="margin-left: 10px;">✏️ Edit This Study</button>
         </div>
     </nav>
 
     <main id="app">
         <section class="archive-selector no-print">
             <select id="study-date"></select>
-            <button onclick="window.print()" class="ui-btn">🖨️ Print</button>
             <button onclick="window.shareStudy()" class="ui-btn share-btn">🔗 Share</button>
+            <button id="editStudyBtn" class="admin-only ui-btn">✏️ Edit Study</button>
+            <button onclick="window.openNewStudyModal()" class="admin-only ui-btn" style="background:#27ae60; color:white;">➕ New</button>
         </section>
 
         <div id="content-display">
             <section class="card">
-                <h2>Scripture</h2>
-                <p id="passage-text" class="scripture">Loading...</p>
-                <a id="open-bible-app" href="#" target="_blank" class="bible-link-btn">📖 Open in Bible App</a>
-            </section>
-
-            <section class="card">
-                <h2>Worship Lyrics</h2>
-                <div id="video-wrapper"></div>
-                <pre id="lyrics-container"></pre>
+                <h2>Passages</h2>
+                <div id="passage-text">
+                    <p class="scripture">Loading study...</p>
+                </div>
             </section>
 
             <section class="card">
                 <h2>Activity</h2>
                 <p id="activity-desc"></p>
+                <div class="no-print" style="margin-top:15px;">
+                    <button onclick="window.print()" class="ui-btn">🖨️ Print Study Guide</button>
+                </div>
             </section>
 
             <section class="card no-print">
@@ -51,28 +49,27 @@
                 <hr>
                 <div class="prayer-input">
                     <input type="text" id="prayerName" placeholder="Your Name">
-                    <label class="anon-label"><input type="checkbox" id="anonToggle"> Post Anonymously</label>
+                    <div style="margin: 5px 0;">
+                        <label class="anon-label"><input type="checkbox" id="anonToggle"> Post Anonymously</label>
+                    </div>
                     <textarea id="prayerText" placeholder="What can we pray for?"></textarea>
                     <button onclick="window.postPrayer()" class="post-btn">Post Request</button>
                 </div>
+            </section>
+
+            <section class="card">
+                <h2>Worship</h2>
+                <div id="video-wrapper"></div>
+                <pre id="lyrics-container"></pre>
             </section>
         </div>
     </main>
 
     <div id="adminModal" class="modal">
         <div class="modal-content">
-            <h3>Add New Study</h3>
+            <h3 id="modalTitle">Manage Study</h3>
+            <label>Meeting Date:</label>
             <input type="date" id="newDate">
-            <textarea id="newPassage" placeholder="List passages (one per line, e.g. John 3:16)"></textarea>
-            <input type="text" id="newVideoUrl" placeholder="YouTube Link (optional)">
-            <textarea id="newActivity" placeholder="Meeting Activity..."></textarea>
-            <textarea id="newLyrics" placeholder="Song Lyrics..."></textarea>
-            <button id="saveStudyBtn" class="post-btn">Post Study</button>
-			<button id="deleteStudyBtn" class="admin-only ui-btn" style="background:#e74c3c; color:white; margin-top:10px;">🗑️ Delete Entire Study</button>
-            <button onclick="document.getElementById('adminModal').style.display='none'" class="ui-btn">Close</button>
-        </div>
-    </div>
-
-    <script type="module" src="app.js"></script>
-</body>
-</html>
+            
+            <label>Passages (One per line):</label>
+            <textarea id="newPassage" rows="3" placeholder="Example:&#10;Matthew 8:3-10&#10;Psalm 23"></
