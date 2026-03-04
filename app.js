@@ -50,12 +50,41 @@ onValue(studiesRef, (snap) => {
 function renderStudy(date) {
     const entry = Object.entries(allStudiesRawData).find(([id, s]) => s.date === date);
     if (!entry) return;
-    const [id, s] = entry; currentStudyId = id;
+    const [id, s] = entry; 
+    currentStudyId = id;
+    
     const passages = (s.passage || "").split('\n').filter(p => p.trim() !== "");
-    document.getElementById('passage-text').innerHTML = passages.map(p => `
-        <div style="margin-bottom:15px;"><p class="scripture">${p}</p>
-        <a href="https://www.bible.com/search/bible?q=${encodeURIComponent(p)}" target="_blank" class="bible-link-btn">📖 Open ${p}</a></div>
-    `).join('');
+    
+    document.getElementById('passage-text').innerHTML = passages.map(p => {
+        // 1. Clean the reference for the Deep Link
+        // We turn "Matthew 8:3-10" into "MAT.8.3-10"
+        let cleanRef = p.replace(/\s+/g, '.').replace(/:/g, '.').toUpperCase();
+        
+        // Abbreviation fix (Optional but helpful for YouVersion)
+        // If the user types "Matthew", YouVersion likes "MAT"
+        const books = {"MATTHEW": "MAT", "GENESIS": "GEN", "PSALM": "PSA", "PROVERBS": "PRO"}; 
+        for (let full in books) {
+            if (cleanRef.startsWith(full)) {
+                cleanRef = cleanRef.replace(full, books[full]);
+            }
+        }
+
+        // 2. Use the 'bible' path instead of 'search'
+        // This tells the app: "Go to this specific coordinate"
+        const deepLink = `https://www.bible.com/bible/111/${cleanRef}`; 
+        // Note: '111' is NIV. If you want it to use the user's default, 
+        // you can try: `https://www.bible.com/bible/${cleanRef}`
+
+        return `
+            <div style="margin-bottom:15px;">
+                <p class="scripture">${p}</p>
+                <a href="${deepLink}" target="_blank" class="bible-link-btn">
+                    📖 Open in Bible App
+                </a>
+            </div>
+        `;
+    }).join('');
+
     document.getElementById('activity-desc').innerText = s.activity || '';
     document.getElementById('lyrics-container').innerText = s.lyrics || '';
     document.getElementById('last-updated-text').innerText = s.lastModified ? `Updated: ${new Date(s.lastModified).toLocaleString()}` : '';
