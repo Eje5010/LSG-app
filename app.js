@@ -19,24 +19,23 @@ const prayersRef = ref(db, 'prayers');
 
 const ADMIN_CODE = "Grace2026";
 let allStudiesRawData = {};
+let allPrayersData = null;
 let currentStudyId = null;
 let daysToDisplay = 14; 
 
-// --- NAVIGATION & PAGES ---
+let myId = localStorage.getItem('lsg_user_id') || ('user_' + Math.random().toString(36).substr(2, 9));
+localStorage.setItem('lsg_user_id', myId);
 
 window.setPage = (page) => {
     document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
     document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
     document.getElementById(`view-${page}`).style.display = 'block';
     document.getElementById(`nav-${page}`).classList.add('active');
-    
     if (page === 'prayers') {
         localStorage.setItem('lastPrayerCheck', Date.now());
         document.getElementById('prayer-dot').style.display = 'none';
     }
 };
-
-// --- STUDY LOGIC ---
 
 onValue(studiesRef, (snap) => {
     const data = snap.val();
@@ -51,8 +50,7 @@ onValue(studiesRef, (snap) => {
 function renderStudy(date) {
     const entry = Object.entries(allStudiesRawData).find(([id, s]) => s.date === date);
     if (!entry) return;
-    const [id, s] = entry; 
-    currentStudyId = id;
+    const [id, s] = entry; currentStudyId = id;
     const passages = (s.passage || "").split('\n').filter(p => p.trim() !== "");
     document.getElementById('passage-text').innerHTML = passages.map(p => `
         <div style="margin-bottom:15px;"><p class="scripture">${p}</p>
@@ -60,39 +58,41 @@ function renderStudy(date) {
     `).join('');
     document.getElementById('activity-desc').innerText = s.activity || '';
     document.getElementById('lyrics-container').innerText = s.lyrics || '';
+    document.getElementById('last-updated-text').innerText = s.lastModified ? `Updated: ${new Date(s.lastModified).toLocaleString()}` : '';
 }
-
-// --- PRAYER LOGIC ---
 
 window.loadMorePrayers = () => { daysToDisplay += 14; renderPrayers(allPrayersData); };
 
-let allPrayersData = null;
-onValue(prayersRef, (snap) => { 
-    allPrayersData = snap.val();
-    renderPrayers(allPrayersData); 
-});
+onValue(prayersRef, (snap) => { allPrayersData = snap.val(); renderPrayers(allPrayersData); });
+
+window.incrementPrayerTally = async (id) => {
+    const currentTally = allPrayersData[id].tally || 0;
+    await set(ref(db, `prayers/${id}/tally`), currentTally + 1);
+};
 
 function renderPrayers(data) {
     if (!data) { document.getElementById('prayer-list').innerHTML = "No prayers yet."; return; }
+    const isAdmin = document.body.classList.contains('show-admin');
     const all = Object.entries(data).map(([id, val]) => ({ id, ...val }));
-    
-    // Notification Check
     const lastViewed = localStorage.getItem('lastPrayerCheck') || 0;
-    const newest = Math.max(...all.map(p => p.timestamp));
-    if (newest > lastViewed && !document.getElementById('nav-prayers').classList.contains('active')) {
+    if (Math.max(...all.map(p => p.timestamp)) > lastViewed && !document.getElementById('nav-prayers').classList.contains('active')) {
         document.getElementById('prayer-dot').style.display = 'block';
     }
-
     const cutoff = Date.now() - (daysToDisplay * 24 * 60 * 60 * 1000);
     const visible = all.filter(p => p.timestamp > cutoff).sort((a,b) => b.timestamp - a.timestamp);
-    
-    document.getElementById('prayer-list').innerHTML = visible.map(p => `
-        <div class="prayer-item">
-            <button class="delete-btn" onclick="window.deletePrayer('${p.id}')">Delete</button>
-            <strong>${p.name} <small>(${new Date(p.timestamp).toLocaleDateString()})</small></strong>
-            <p>${p.request}</p>
-        </div>
-    `).join('');
+    document.getElementById('prayer-list').innerHTML = visible.map(p => {
+        const canDelete = isAdmin || (p.ownerId === myId);
+        return `
+            <div class="prayer-item">
+                ${canDelete ? `<button class="delete-btn" onclick="window.deletePrayer('${p.id}')">Delete</button>` : ''}
+                <strong>${p.name} <small>(${new Date(p.timestamp).toLocaleDateString()})</small></strong>
+                <p>${p.request}</p>
+                <div class="prayer-actions">
+                    <button class="prayed-btn" onclick="window.incrementPrayerTally('${p.id}')">I Prayed!</button>
+                    ${p.tally ? `<span class="tally-count">🙏 ${p.tally}</span>` : ''}
+                </div>
+            </div>`;
+    }).join('');
     document.getElementById('loadMorePrayers').style.display = all.length > visible.length ? 'block' : 'none';
 }
 
@@ -101,60 +101,31 @@ window.postPrayer = async () => {
     if(!text.trim()) return alert("Enter request.");
     await set(push(prayersRef), {
         name: document.getElementById('anonToggle').checked ? "Anonymous" : (document.getElementById('prayerName').value || "Friend"),
-        request: text, timestamp: Date.now()
+        request: text, timestamp: Date.now(), ownerId: myId
     });
     document.getElementById('prayerText').value = "";
 };
 
 window.deletePrayer = async (id) => { if(confirm("Delete prayer?")) await set(ref(db, `prayers/${id}`), null); };
-
-// --- ADMIN ---
-
-window.openAdmin = () => { if(prompt("Code:") === ADMIN_CODE) document.body.classList.add('show-admin'); };
-
+window.openAdmin = () => { if(prompt("Code:") === ADMIN_CODE) { document.body.classList.add('show-admin'); renderPrayers(allPrayersData); } };
 window.openNewStudyModal = () => {
-    currentStudyId = null; 
-    document.getElementById('modalTitle').innerText = "New Study";
+    currentStudyId = null; document.getElementById('modalTitle').innerText = "New Study";
     document.querySelectorAll('.modal-content input, .modal-content textarea').forEach(i => i.value = "");
     document.getElementById('adminModal').style.display = 'block';
 };
-
 document.getElementById('editStudyBtn').onclick = () => {
     const s = allStudiesRawData[currentStudyId];
-    document.getElementById('newDate').value = s.date;
-    document.getElementById('newPassage').value = s.passage;
-    document.getElementById('newActivity').value = s.activity;
-    document.getElementById('newLyrics').value = s.lyrics;
+    document.getElementById('newDate').value = s.date; document.getElementById('newPassage').value = s.passage;
+    document.getElementById('newActivity').value = s.activity; document.getElementById('newLyrics').value = s.lyrics;
     document.getElementById('adminModal').style.display = 'block';
 };
-
 document.getElementById('saveStudyBtn').onclick = async () => {
-    const d = { 
-        date: document.getElementById('newDate').value, 
-        passage: document.getElementById('newPassage').value, 
-        activity: document.getElementById('newActivity').value, 
-        lyrics: document.getElementById('newLyrics').value 
-    };
+    const d = { date: document.getElementById('newDate').value, passage: document.getElementById('newPassage').value, 
+                activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value, lastModified: Date.now() };
     await set(currentStudyId ? ref(db, `studies/${currentStudyId}`) : push(studiesRef), d);
     document.getElementById('adminModal').style.display = 'none';
 };
-
 document.getElementById('deleteStudyBtn').onclick = async () => { if(confirm("Delete week?")) await set(ref(db, `studies/${currentStudyId}`), null); };
-
-// --- INIT ---
-
-window.shareStudy = async () => {
-    const dateSelect = document.getElementById('study-date');
-    const dateText = dateSelect.options[dateSelect.selectedIndex]?.text || "Study";
-    const shareText = `LSG Portal - Study for ${dateText}\n${window.location.href}`;
-    if (navigator.share) {
-        await navigator.share({ title: 'LSG Portal', text: shareText, url: window.location.href });
-    } else {
-        navigator.clipboard.writeText(shareText);
-        alert("Link copied!");
-    }
-};
-
 document.getElementById('study-date').onchange = (e) => renderStudy(e.target.value);
 document.getElementById('theme-toggle').onchange = (e) => document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
 window.setPage('studies');

@@ -6,6 +6,7 @@
     <title>LSG Portal</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
+	<link rel="apple-touch-icon" href="icon-512.png">
 </head>
 <body>
     <nav class="navbar">
@@ -49,6 +50,7 @@
                     <h2>Worship Lyrics</h2>
                     <pre id="lyrics-container"></pre>
                 </section>
+                <p id="last-updated-text" style="text-align: center; font-size: 0.75rem; color: #888; margin-top: -10px;"></p>
             </div>
         </div>
 
@@ -90,7 +92,6 @@
             <button onclick="document.getElementById('adminModal').style.display='none'" class="ui-btn" style="width:100%; margin-top:10px;">Cancel</button>
         </div>
     </div>
-
     <script type="module" src="app.js"></script>
 </body>
 </html>
