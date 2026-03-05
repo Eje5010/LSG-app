@@ -45,7 +45,6 @@ onValue(studiesRef, (snap) => {
             return `<option value="${s.date}">${new Date(y, m-1, d).toDateString()}</option>`;
         }).join('');
 
-        // Calculate Target Wednesday based strictly on LOCAL time
         const now = new Date();
         const dTarget = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const diff = (3 - dTarget.getDay() + 7) % 7;
@@ -101,22 +100,15 @@ function renderStudy(date) {
     }
 }
 
-// --- MEAL SIGN-UP LOGIC (LOCAL TIME ONLY) ---
+// --- MEAL LOGIC (LOCAL TIME) ---
 function getNextWednesdays(count) {
-    let dates = []; 
-    let now = new Date();
-    // Force local midnight to prevent 7PM flip
+    let dates = []; let now = new Date();
     let d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
     let diff = (3 - d.getDay() + 7) % 7;
     d.setDate(d.getDate() + diff);
-
     for (let i = 0; i < count; i++) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        dates.push(`${y}-${m}-${day}`);
-        d.setDate(d.getDate() + 7);
+        const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0');
+        dates.push(`${y}-${m}-${day}`); d.setDate(d.getDate() + 7);
     }
     return dates;
 }
@@ -140,12 +132,10 @@ function renderMeals() {
 }
 
 window.promptClaim = async (date, isEdit = false) => {
-    const existing = allMealsData[date];
-    const name = isEdit ? existing.name : prompt("Enter your name:");
-    if (!name) return;
-    const dish = prompt("What are you bringing?", isEdit ? existing.dish : "");
-    if (!dish) return;
-    await set(ref(db, `meals/${date}`), { name, dish, ownerId: isEdit ? existing.ownerId : myId });
+    const ex = allMealsData[date];
+    const name = isEdit ? ex.name : prompt("Enter your name:"); if (!name) return;
+    const dish = prompt("What are you bringing?", isEdit ? ex.dish : ""); if (!dish) return;
+    await set(ref(db, `meals/${date}`), { name, dish, ownerId: isEdit ? ex.ownerId : myId });
 };
 
 window.deleteMeal = async (date) => { if (confirm("Cancel this meal?")) await set(ref(db, `meals/${date}`), null); };
