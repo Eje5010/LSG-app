@@ -39,17 +39,32 @@ window.setPage = (page) => {
     if (page === 'prayers') { localStorage.setItem('lastPrayerCheck', Date.now()); document.getElementById('prayer-dot').style.display = 'none'; }
 };
 
-// --- STUDY & MEAL SYNC LOGIC ---
+// --- STUDY LOGIC (TIMEZONE HARDENED) ---
 onValue(studiesRef, (snap) => {
     const data = snap.val();
     if (data) {
         allStudiesRawData = data;
         const sorted = Object.entries(data).sort((a,b) => new Date(b[1].date) - new Date(a[1].date));
+        
         document.getElementById('study-date').innerHTML = sorted.map(([id, s]) => {
             const [y, m, d] = s.date.split('-');
             return `<option value="${s.date}">${new Date(y, m-1, d).toDateString()}</option>`;
         }).join('');
-        renderStudy(sorted[0][1].date);
+
+        const now = new Date();
+        const dTarget = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const diff = (3 - dTarget.getDay() + 7) % 7;
+        dTarget.setDate(dTarget.getDate() + diff);
+        
+        const tY = dTarget.getFullYear();
+        const tM = String(dTarget.getMonth() + 1).padStart(2, '0');
+        const tD = String(dTarget.getDate()).padStart(2, '0');
+        const targetWedStr = `${tY}-${tM}-${tD}`;
+
+        const bestMatch = sorted.find(([id, s]) => s.date === targetWedStr) || sorted[0];
+        const defaultDate = bestMatch[1].date;
+        document.getElementById('study-date').value = defaultDate;
+        renderStudy(defaultDate);
     }
 });
 
@@ -77,7 +92,6 @@ function renderStudy(date) {
     document.getElementById('lyrics-container').innerText = s.lyrics || '';
     document.getElementById('last-updated-text').innerText = s.lastModified ? `Updated: ${new Date(s.lastModified).toLocaleString()}` : '';
 
-    // Integrated Meal Display
     const meal = allMealsData[date];
     const mealCard = document.getElementById('study-meal-card');
     const mealInfo = document.getElementById('study-meal-info');
@@ -88,18 +102,19 @@ function renderStudy(date) {
         const dArr = date.split('-');
         const isWed = new Date(dArr[0], dArr[1]-1, dArr[2]).getDay() === 3;
         mealCard.style.display = isWed ? 'block' : 'none';
-        if (isWed) mealInfo.innerHTML = `<p style="color: #e67e22;">No meal signed up yet for this Wednesday.</p>`;
+        if (isWed) mealInfo.innerHTML = `<p style="color: #e67e22;">No meal signed up yet for this week.</p>`;
     }
 }
 
-// --- MEAL SIGN-UP LOGIC ---
+// --- MEAL LOGIC (LOCAL TIME) ---
 function getNextWednesdays(count) {
-    let dates = []; let d = new Date();
+    let dates = []; let now = new Date();
+    let d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     let diff = (3 - d.getDay() + 7) % 7;
     d.setDate(d.getDate() + diff);
     for (let i = 0; i < count; i++) {
-        dates.push(new Date(d).toISOString().split('T')[0]);
-        d.setDate(d.getDate() + 7);
+        const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0');
+        dates.push(`${y}-${m}-${day}`); d.setDate(d.getDate() + 7);
     }
     return dates;
 }
@@ -123,12 +138,10 @@ function renderMeals() {
 }
 
 window.promptClaim = async (date, isEdit = false) => {
-    const existing = allMealsData[date];
-    const name = isEdit ? existing.name : prompt("Enter your name:");
-    if (!name) return;
-    const dish = prompt("What are you bringing?", isEdit ? existing.dish : "");
-    if (!dish) return;
-    await set(ref(db, `meals/${date}`), { name, dish, ownerId: isEdit ? existing.ownerId : myId });
+    const ex = allMealsData[date];
+    const name = isEdit ? ex.name : prompt("Enter your name:"); if (!name) return;
+    const dish = prompt("What are you bringing?", isEdit ? ex.dish : ""); if (!dish) return;
+    await set(ref(db, `meals/${date}`), { name, dish, ownerId: isEdit ? ex.ownerId : myId });
 };
 
 window.deleteMeal = async (date) => { if (confirm("Cancel this meal?")) await set(ref(db, `meals/${date}`), null); };
@@ -166,13 +179,15 @@ document.getElementById('saveStudyBtn').onclick = async () => {
 };
 document.getElementById('deleteStudyBtn').onclick = async () => { if(confirm("Delete week?")) await set(ref(db, `studies/${currentStudyId}`), null); };
 
-// --- INIT ---
+// --- SHARE ---
 window.shareStudy = function() {
     const sel = document.getElementById('study-date'); const txt = `📖 LSG Portal: ${sel.options[sel.selectedIndex]?.text || "Study"}\nLink:`;
     const url = window.location.origin + window.location.pathname;
     if (navigator.share) navigator.share({ title: 'LSG Portal', text: txt, url }).catch(() => {});
     else { navigator.clipboard.writeText(txt + " " + url); alert("Link copied!"); }
 };
+
+// --- INIT ---
 document.getElementById('study-date').onchange = (e) => renderStudy(e.target.value);
 document.getElementById('theme-toggle').onchange = (e) => document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
 window.setPage('studies');
