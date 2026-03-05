@@ -2,15 +2,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyApSCRd4undaYcm153QIROmhpDGSWiRIRA",
-    authDomain: "lsg-app-5680f.firebaseapp.com",
-    databaseURL: "https://lsg-app-5680f-default-rtdb.firebaseio.com",
-    projectId: "lsg-app-5680f",
-    storageBucket: "lsg-app-5680f.firebasestorage.app",
-    messagingSenderId: "832031335726",
-    appId: "1:832031335726:web:09e180dbfe10605c97c6bf",
-    measurementId: "G-DEBFM292Z4"
-  };
+  apiKey: "YOUR_KEY", authDomain: "YOUR_DOMAIN", databaseURL: "YOUR_URL",
+  projectId: "YOUR_ID", storageBucket: "YOUR_BUCKET", messagingSenderId: "YOUR_SENDER", appId: "YOUR_APP"
+};
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const studiesRef = ref(db, 'studies');
@@ -38,7 +33,7 @@ window.setPage = (page) => {
     if (page === 'prayers') { localStorage.setItem('lastPrayerCheck', Date.now()); document.getElementById('prayer-dot').style.display = 'none'; }
 };
 
-// --- STUDY LOGIC (Now with Target Wednesday Auto-Load) ---
+// --- STUDY LOGIC (TIMEZONE HARDENED) ---
 onValue(studiesRef, (snap) => {
     const data = snap.val();
     if (data) {
@@ -50,11 +45,16 @@ onValue(studiesRef, (snap) => {
             return `<option value="${s.date}">${new Date(y, m-1, d).toDateString()}</option>`;
         }).join('');
 
-        // Logic to find today if Wed, or next upcoming Wed
-        let dTarget = new Date();
-        let diff = (3 - dTarget.getDay() + 7) % 7;
+        // Calculate Target Wednesday based strictly on LOCAL time
+        const now = new Date();
+        const dTarget = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const diff = (3 - dTarget.getDay() + 7) % 7;
         dTarget.setDate(dTarget.getDate() + diff);
-        const targetWedStr = dTarget.toISOString().split('T')[0];
+        
+        const tY = dTarget.getFullYear();
+        const tM = String(dTarget.getMonth() + 1).padStart(2, '0');
+        const tD = String(dTarget.getDate()).padStart(2, '0');
+        const targetWedStr = `${tY}-${tM}-${tD}`;
 
         const bestMatch = sorted.find(([id, s]) => s.date === targetWedStr) || sorted[0];
         const defaultDate = bestMatch[1].date;
@@ -101,13 +101,21 @@ function renderStudy(date) {
     }
 }
 
-// --- MEAL SIGN-UP LOGIC ---
+// --- MEAL SIGN-UP LOGIC (LOCAL TIME ONLY) ---
 function getNextWednesdays(count) {
-    let dates = []; let d = new Date();
+    let dates = []; 
+    let now = new Date();
+    // Force local midnight to prevent 7PM flip
+    let d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
     let diff = (3 - d.getDay() + 7) % 7;
     d.setDate(d.getDate() + diff);
+
     for (let i = 0; i < count; i++) {
-        dates.push(new Date(d).toISOString().split('T')[0]);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        dates.push(`${y}-${m}-${day}`);
         d.setDate(d.getDate() + 7);
     }
     return dates;
