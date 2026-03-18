@@ -41,11 +41,10 @@
 
     <main id="app">
         <div id="view-studies" class="page-view">
-            <section class="archive-selector no-print">
+            <section class="archive-selector no-print admin-only">
                 <select id="study-date"></select>
-                <button onclick="window.shareStudy()" class="ui-btn share-btn">🔗 Share</button>
-                <button id="editStudyBtn" class="admin-only ui-btn">✏️ Edit</button>
-                <button onclick="window.openNewStudyModal()" class="admin-only ui-btn" style="background:#27ae60; color:white;">➕ New</button>
+                <button id="editStudyBtn" class="ui-btn">✏️ Edit This Week</button>
+                <button onclick="window.openNewStudyModal()" class="ui-btn" style="background:#27ae60; color:white;">➕ New Week</button>
             </section>
 
             <div id="study-content">
@@ -53,6 +52,7 @@
                 <section class="card"><h2>Activity</h2><p id="activity-desc"></p></section>
                 <section id="study-meal-card" class="card" style="display:none;"><h2>Wednesday Meal</h2><div id="study-meal-info"></div></section>
                 <section class="card"><h2>Worship Lyrics</h2><pre id="lyrics-container"></pre></section>
+                <button onclick="window.shareStudy()" class="post-btn" style="background: var(--accent); margin-bottom: 20px;">🔗 Share Study</button>
             </div>
         </div>
 
@@ -85,7 +85,7 @@
                 </div>
                 <div id="scripInputArea" style="display:none;"><input type="text" id="learnScrip" placeholder="Scripture (e.g. John 3:16)"></div>
                 <div id="urlInputArea" style="display:none;"><input type="url" id="learnUrl" placeholder="https://..."></div>
-                <textarea id="learnNotes" placeholder="Notes..."></textarea>
+                <textarea id="learnNotes" placeholder="Notes on what you learned..."></textarea>
                 <button onclick="window.postLearning()" class="post-btn">Share Insights</button>
             </section>
         </div>
