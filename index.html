@@ -10,24 +10,27 @@
     <link rel="apple-touch-icon" href="icon-512.png">
 </head>
 <body>
-		<<nav class="navbar">
-		<h1>Lansdale Small Group Portal</h1>
-		<div class="nav-controls">
-			<div class="theme-container">
-				<span class="theme-label">Dark Mode</span>
-				<label class="theme-switch">
-					<input type="checkbox" id="theme-toggle">
-					<span class="slider"></span>
-				</label>
-			</div>
-			<button id="adminBtn" onclick="window.openAdmin()">Admin</button>
-		</div>
-	</nav>
+    <nav class="navbar">
+        <h1>Lansdale Small Group Portal</h1>
+        <div class="nav-controls">
+            <div class="theme-container">
+                <span class="theme-label">Dark Mode</span>
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button id="adminBtn" onclick="window.openAdmin()">Admin</button>
+        </div>
+    </nav>
 
     <nav class="bottom-nav">
         <button onclick="window.setPage('studies')" id="nav-studies">📖 Study</button>
         <button onclick="window.setPage('prayers')" id="nav-prayers" style="position: relative;">
             🙏 Prayers <span id="prayer-dot" class="notification-dot" style="display: none;"></span>
+        </button>
+        <button onclick="window.setPage('readings')" id="nav-readings" style="position: relative;">
+            📖 Reading <span id="reading-dot" class="notification-dot" style="display: none;"></span>
         </button>
         <button onclick="window.setPage('meals')" id="nav-meals">🍲 Meals</button>
     </nav>
@@ -46,23 +49,18 @@
                     <h2>Passages</h2>
                     <div id="passage-text"></div>
                 </section>
-
                 <section class="card">
                     <h2>Activity</h2>
                     <p id="activity-desc"></p>
                 </section>
-
                 <section id="study-meal-card" class="card" style="display:none;">
                     <h2>Wednesday Meal</h2>
                     <div id="study-meal-info"></div>
                 </section>
-
                 <section class="card">
                     <h2>Worship Lyrics</h2>
                     <pre id="lyrics-container"></pre>
                 </section>
-                
-                <p id="last-updated-text" style="text-align: center; font-size: 0.75rem; color: #888; margin-top: -10px;"></p>
             </div>
         </div>
 
@@ -72,7 +70,6 @@
                 <div id="prayer-list"></div>
                 <button id="loadMorePrayers" onclick="window.loadMorePrayers()" class="ui-btn" style="width:100%; margin-top:10px; display:none;">Show Older Prayers</button>
             </section>
-            
             <section class="card no-print">
                 <h3>Post a Request</h3>
                 <div class="prayer-input">
@@ -80,6 +77,22 @@
                     <label class="anon-label"><input type="checkbox" id="anonToggle"> Post Anonymously</label>
                     <textarea id="prayerText" placeholder="What can we pray for?"></textarea>
                     <button onclick="window.postPrayer()" class="post-btn">Post Request</button>
+                </div>
+            </section>
+        </div>
+
+        <div id="view-readings" class="page-view" style="display:none;">
+            <section class="card">
+                <h2>Community Reading</h2>
+                <div id="reading-list"></div>
+            </section>
+            <section class="card no-print">
+                <h3>Share Your Reading</h3>
+                <div class="reading-input">
+                    <input type="text" id="readingName" placeholder="Your Name">
+                    <input type="text" id="readingScripture" placeholder="Scripture (e.g., John 3:16)">
+                    <textarea id="readingNotes" placeholder="What did you learn?"></textarea>
+                    <button onclick="window.postReading()" class="post-btn">Share with Group</button>
                 </div>
             </section>
         </div>
@@ -104,7 +117,6 @@
             <textarea id="newActivity" rows="3"></textarea>
             <label>Song Lyrics:</label>
             <textarea id="newLyrics" rows="5"></textarea>
-            
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button id="saveStudyBtn" class="post-btn" style="margin-top:0;">Save Study</button>
                 <button id="deleteStudyBtn" class="admin-only ui-btn" style="background:#e74c3c; color:white;">🗑️ Delete</button>
@@ -112,7 +124,6 @@
             <button onclick="document.getElementById('adminModal').style.display='none'" class="ui-btn" style="width:100%; margin-top:10px;">Cancel</button>
         </div>
     </div>
-
     <script type="module" src="app.js"></script>
 </body>
 </html>
