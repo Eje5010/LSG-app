@@ -40,80 +40,17 @@
     </nav>
 
     <main id="app">
-        <div id="view-studies" class="page-view">
+        <div id="view-studies" class="page-view" style="display: block;">
             <section class="archive-selector no-print admin-only">
-                <div class="card" style="border: 2px dashed var(--btn); margin-bottom: 20px;">
-                    <h4 style="margin-top:0">Admin: Manage Weeks</h4>
+                <div class="card" style="border: 2px dashed var(--btn); margin-bottom: 20px; background: rgba(52, 152, 219, 0.05);">
+                    <h4 style="margin:0 0 10px 0; color: var(--btn);">Admin: Study Manager</h4>
                     <select id="study-date"></select>
                     <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button id="editStudyBtn" class="ui-btn">✏️ Edit This Week</button>
+                        <button id="editStudyBtn" class="ui-btn">✏️ Edit Current</button>
                         <button onclick="window.openNewStudyModal()" class="ui-btn" style="background:#27ae60; color:white;">➕ New Week</button>
                     </div>
                 </div>
             </section>
 
             <div id="study-content">
-                <section class="card"><h2>Passages</h2><div id="passage-text"></div></section>
-                <section class="card"><h2>Activity</h2><p id="activity-desc"></p></section>
-                <section id="study-meal-card" class="card" style="display:none;"><h2>Wednesday Meal</h2><div id="study-meal-info"></div></section>
-                <section class="card"><h2>Worship Lyrics</h2><pre id="lyrics-container"></pre></section>
-                <button onclick="window.shareStudy()" class="post-btn" style="background: var(--accent); margin-bottom: 20px;">🔗 Share Study</button>
-            </div>
-        </div>
-
-        <div id="view-prayers" class="page-view" style="display:none;">
-            <section class="card">
-                <h2>Prayer Wall</h2>
-                <div id="prayer-list"></div>
-            </section>
-            <section class="card no-print">
-                <h3>Post a Request</h3>
-                <input type="text" id="prayerName" placeholder="Your Name">
-                <label class="anon-label"><input type="checkbox" id="anonToggle"> Post Anonymously</label>
-                <textarea id="prayerText" placeholder="What can we pray for?"></textarea>
-                <button onclick="window.postPrayer()" class="post-btn">Post Request</button>
-            </section>
-        </div>
-
-        <div id="view-learnings" class="page-view" style="display:none;">
-            <section class="card">
-                <h2>Community Learning</h2>
-                <div id="learning-list"></div>
-            </section>
-            <section class="card no-print">
-                <h3>Share Your Learning</h3>
-                <input type="text" id="learnName" placeholder="Your Name">
-                <input type="text" id="learnTitle" placeholder="Title (e.g. Morning Devotional)">
-                <div class="checkbox-row">
-                    <label><input type="checkbox" id="checkScrip" onchange="toggleExtra('Scrip')"> Add Scripture</label>
-                    <label><input type="checkbox" id="checkUrl" onchange="toggleExtra('Url')"> Add URL</label>
-                </div>
-                <div id="scripInputArea" style="display:none;"><input type="text" id="learnScrip" placeholder="Scripture (e.g. John 3:16)"></div>
-                <div id="urlInputArea" style="display:none;"><input type="url" id="learnUrl" placeholder="https://..."></div>
-                <textarea id="learnNotes" placeholder="Notes on what you learned..."></textarea>
-                <button onclick="window.postLearning()" class="post-btn">Share Insights</button>
-            </section>
-        </div>
-
-        <div id="view-meals" class="page-view" style="display:none;">
-            <section class="card"><h2>Meal Sign-up</h2><div id="meal-list"></div></section>
-        </div>
-    </main>
-
-    <div id="adminModal" class="modal">
-        <div class="modal-content">
-            <h3 id="modalTitle">Manage Study</h3>
-            <input type="date" id="newDate">
-            <textarea id="newPassage" rows="3" placeholder="Passages..."></textarea>
-            <textarea id="newActivity" rows="2" placeholder="Activity..."></textarea>
-            <textarea id="newLyrics" rows="4" placeholder="Lyrics..."></textarea>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button id="saveStudyBtn" class="post-btn" style="margin-top:0;">Save</button>
-                <button id="deleteStudyBtn" class="admin-only ui-btn" style="background:#e74c3c; color:white;">Delete</button>
-            </div>
-            <button onclick="document.getElementById('adminModal').style.display='none'" class="ui-btn" style="width:100%; margin-top:10px;">Cancel</button>
-        </div>
-    </div>
-    <script type="module" src="app.js"></script>
-</body>
-</html>
+                <section class="card"><h2>Passages</h2>

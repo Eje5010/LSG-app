@@ -26,13 +26,21 @@ function getBibleLink(ref) {
 }
 
 window.setPage = (page) => {
-    document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
+    // Hide all pages
+    document.querySelectorAll('.page-view').forEach(p => { p.style.display = 'none'; });
+    
+    // Show selected page
+    const activePage = document.getElementById(`view-${page}`);
+    activePage.style.display = 'block';
+
+    // Update Nav Buttons
     document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
-    document.getElementById(`view-${page}`).style.display = 'block';
     document.getElementById(`nav-${page}`).classList.add('active');
     
+    // Notifications logic
     if (page === 'prayers') { localStorage.setItem('lastPrayerCheck', Date.now()); document.getElementById('prayer-dot').style.display = 'none'; }
     if (page === 'learnings') { localStorage.setItem('lastLearnCheck', Date.now()); document.getElementById('learning-dot').style.display = 'none'; }
+
     window.scrollTo(0,0);
 };
 
@@ -105,67 +113,4 @@ function renderPrayers() {
 // --- UTILS ---
 window.updateStatus = async (id, s) => await set(ref(db, `prayers/${id}/status`), s);
 window.deleteItem = async (p, id) => { if(confirm("Delete?")) await set(ref(db, `${p}/${id}`), null); };
-window.updateNote = async (p, id, t) => await set(ref(db, `${p}/${id}/${p==='prayers'?'request':'notes'}`), t);
-window.incrementTally = async (p, id, f) => { const d = p==='prayers'?allPrayersData:allLearnsData; await set(ref(db, `${p}/${id}/${f}`), (d[id][f] || 0) + 1); };
-
-// --- STUDY & MEALS ---
-onValue(studiesRef, snap => {
-    allStudiesRawData = snap.val() || {};
-    const sorted = Object.entries(allStudiesRawData).sort((a,b) => new Date(b[1].date) - new Date(a[1].date));
-    document.getElementById('study-date').innerHTML = sorted.map(([id, s]) => `<option value="${s.date}">${new Date(s.date.replace(/-/g, '/')).toDateString()}</option>`).join('');
-    const dT = new Date(); dT.setDate(dT.getDate() + (3 - dT.getDay() + 7) % 7);
-    const tWed = `${dT.getFullYear()}-${String(dT.getMonth()+1).padStart(2,'0')}-${String(dT.getDate()).padStart(2,'0')}`;
-    const best = sorted.find(([id, s]) => s.date === tWed) || sorted[0];
-    if(best) { document.getElementById('study-date').value = best[1].date; renderStudy(best[1].date); }
-});
-
-onValue(mealsRef, snap => { allMealsData = snap.val() || {}; renderMeals(); const sd = document.getElementById('study-date'); if(sd?.value) renderStudy(sd.value); });
-
-function renderStudy(date) {
-    const s = Object.values(allStudiesRawData).find(x => x.date === date); if(!s) return;
-    document.getElementById('passage-text').innerHTML = (s.passage || "").split('\n').filter(p => p.trim()).map(p => `<div style="margin-bottom:10px;"><p class="scripture">${p}</p><a href="${getBibleLink(p)}" target="_blank" style="color:var(--btn);font-size:0.8rem;">Open Bible (ESV)</a></div>`).join('');
-    document.getElementById('activity-desc').innerText = s.activity || '';
-    document.getElementById('lyrics-container').innerText = s.lyrics || '';
-    const meal = allMealsData[date], mc = document.getElementById('study-meal-card'), mi = document.getElementById('study-meal-info');
-    if(meal) { mc.style.display = 'block'; mi.innerHTML = `<p><strong>${meal.name}</strong> is bringing <strong>${meal.dish}</strong>!</p>`; }
-    else { const isW = new Date(date.replace(/-/g, '/')).getDay() === 3; mc.style.display = isW ? 'block' : 'none'; mi.innerHTML = `<p style="color:#e67e22;">No meal yet.</p>`; }
-}
-
-function renderMeals() {
-    let d = new Date(); d.setDate(d.getDate() + (3 - d.getDay() + 7) % 7);
-    const weds = []; for(let i=0; i<4; i++) { weds.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`); d.setDate(d.getDate()+7); }
-    document.getElementById('meal-list').innerHTML = weds.map(date => {
-        const claim = allMealsData[date]; const dStr = new Date(date.replace(/-/g, '/')).toDateString();
-        if(claim) return `<div class="meal-slot"><div><strong>${dStr}</strong><br><span class="claimed">✅ ${claim.name}: ${claim.dish}</span></div><div>${(document.body.classList.contains('show-admin') || claim.ownerId === myId) ? `<button class="ui-btn" onclick="window.pClaim('${date}',true)">✏️</button> <button class="delete-btn" onclick="window.dMeal('${date}')">🗑️</button>` : ''}</div></div>`;
-        return `<div class="meal-slot"><strong>${dStr}</strong><button class="claim-btn" onclick="window.pClaim('${date}')">Sign Up</button></div>`;
-    }).join('');
-}
-
-window.pClaim = async (date, edit) => {
-    const name = edit ? allMealsData[date].name : prompt("Name:"); if(!name) return;
-    const dish = prompt("Dish?", edit ? allMealsData[date].dish : ""); if(!dish) return;
-    await set(ref(db, `meals/${date}`), { name, dish, ownerId: edit ? allMealsData[date].ownerId : myId });
-};
-window.dMeal = async (date) => { if(confirm("Cancel?")) await set(ref(db, `meals/${date}`), null); };
-
-window.openAdmin = () => { if(prompt("Code:") === ADMIN_CODE) { document.body.classList.add('show-admin'); renderPrayers(); renderMeals(); renderLearnings(); } };
-window.openNewStudyModal = () => { currentStudyId = null; document.getElementById('adminModal').style.display='block'; };
-
-document.getElementById('editStudyBtn').onclick = () => {
-    const s = Object.values(allStudiesRawData).find(x => x.date === document.getElementById('study-date').value);
-    if(!s) return;
-    document.getElementById('newDate').value = s.date;
-    document.getElementById('newPassage').value = s.passage;
-    document.getElementById('newActivity').value = s.activity;
-    document.getElementById('newLyrics').value = s.lyrics;
-    document.getElementById('adminModal').style.display = 'block';
-};
-
-document.getElementById('saveStudyBtn').onclick = async () => {
-    await set(push(studiesRef), { date: document.getElementById('newDate').value, passage: document.getElementById('newPassage').value, activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value });
-    document.getElementById('adminModal').style.display='none';
-};
-window.shareStudy = () => { navigator.clipboard.writeText(window.location.href); alert("Link copied!"); };
-document.getElementById('theme-toggle').onchange = (e) => document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
-document.getElementById('study-date').onchange = (e) => renderStudy(e.target.value);
-window.setPage('studies');
+window.updateNote = async (p, id, t) => await

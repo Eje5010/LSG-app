@@ -12,7 +12,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .nav-inner { display: flex; justify-content: space-between; align-items: center; }
 .navbar h1 { font-size: clamp(1rem, 4vw, 1.4rem); margin: 0; flex: 1; }
 
-/* Cards & Feed */
+/* Feed Cards */
 #app { padding: 20px; }
 .card { background: var(--card); padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 .feed-card { 
@@ -47,14 +47,21 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .prayed-btn { background: #f1c40f; border: none; color: #2c3e50; }
 .delete-btn { background: #e74c3c; color: white; border: none; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; }
 
-/* ADMIN VISIBILITY HARD-LOCK */
+/* --- THE ADMIN DOUBLE-LOCK --- */
 .admin-only { display: none !important; }
-/* Only show when body has .show-admin AND is not explicitly hidden by the view logic */
-body.show-admin .admin-only { display: block !important; }
-body.show-admin .archive-selector.admin-only { display: block !important; }
 
-/* Ensure study admin stays hidden if the study page itself is not active */
-#view-studies[style*="display: none"] .admin-only { display: none !important; }
+/* 1. Only show if Admin mode is ON */
+body.show-admin .admin-only { display: block !important; }
+
+/* 2. THE HARD LOCK: Even if Admin is ON, hide Study Manager if Study View is NOT active */
+#view-studies[style*="display: none"] .archive-selector.admin-only {
+    display: none !important;
+}
+
+/* 3. Ensure meal/prayer admin buttons (inline) still work globally */
+body.show-admin .status-controls, body.show-admin .delete-btn {
+    display: flex !important;
+}
 
 /* Formatting */
 .scripture { font-style: italic; border-left: 5px solid var(--btn); padding-left: 15px; color: var(--btn); font-size: 1.1rem; }
