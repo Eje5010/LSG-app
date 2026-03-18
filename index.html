@@ -42,7 +42,7 @@
     <main id="app">
         <div id="view-studies" class="page-view" style="display: block;">
             <section class="archive-selector no-print admin-only">
-                <div class="card" style="border: 2px dashed var(--btn); margin-bottom: 20px; background: rgba(52, 152, 219, 0.05);">
+                <div class="card admin-border">
                     <h4 style="margin:0 0 10px 0; color: var(--btn);">Admin: Study Manager</h4>
                     <select id="study-date"></select>
                     <div style="display:flex; gap:10px; margin-top:10px;">
@@ -53,4 +53,6 @@
             </section>
 
             <div id="study-content">
-                <section class="card"><h2>Passages</h2>
+                <section class="card"><h2>Passages</h2><div id="passage-text"></div></section>
+                <section class="card"><h2>Activity</h2><p id="activity-desc"></p></section>
+                <section id="study-meal-card" class="card" style="display:none;"><h2>Wednesday Meal</h2><div id="study-meal-info"></div></section>

@@ -26,25 +26,23 @@ function getBibleLink(ref) {
 }
 
 window.setPage = (page) => {
-    // Hide all pages
     document.querySelectorAll('.page-view').forEach(p => { p.style.display = 'none'; });
-    
-    // Show selected page
     const activePage = document.getElementById(`view-${page}`);
-    activePage.style.display = 'block';
+    if (activePage) activePage.style.display = 'block';
 
-    // Update Nav Buttons
     document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
-    document.getElementById(`nav-${page}`).classList.add('active');
+    const activeBtn = document.getElementById(`nav-${page}`);
+    if (activeBtn) activeBtn.classList.add('active');
     
-    // Notifications logic
     if (page === 'prayers') { localStorage.setItem('lastPrayerCheck', Date.now()); document.getElementById('prayer-dot').style.display = 'none'; }
     if (page === 'learnings') { localStorage.setItem('lastLearnCheck', Date.now()); document.getElementById('learning-dot').style.display = 'none'; }
-
     window.scrollTo(0,0);
 };
 
-window.toggleExtra = (t) => document.getElementById(`${t.toLowerCase()}InputArea`).style.display = document.getElementById(`check${t}`).checked ? 'block' : 'none';
+window.toggleExtra = (t) => {
+    const el = document.getElementById(`${t.toLowerCase()}InputArea`);
+    if (el) el.style.display = document.getElementById(`check${t}`).checked ? 'block' : 'none';
+};
 
 // --- LEARNINGS ---
 onValue(learnsRef, snap => { allLearnsData = snap.val(); renderLearnings(); });
@@ -62,7 +60,7 @@ window.postLearning = async () => {
 };
 
 function renderLearnings() {
-    const list = document.getElementById('learning-list'); if(!allLearnsData) { list.innerHTML = "No insights yet."; return; }
+    const list = document.getElementById('learning-list'); if(!allLearnsData) { list.innerHTML = "<p style='text-align:center; padding:20px;'>No insights shared yet.</p>"; return; }
     const all = Object.entries(allLearnsData).map(([id, val]) => ({ id, ...val })).sort((a,b) => b.timestamp - a.timestamp);
     const last = localStorage.getItem('lastLearnCheck') || 0;
     if (Math.max(...all.map(r => r.timestamp)) > last && !document.getElementById('nav-learnings').classList.contains('active')) document.getElementById('learning-dot').style.display = 'block';
@@ -77,40 +75,3 @@ function renderLearnings() {
             <div class="${canEdit ? 'editable-note' : ''}" contenteditable="${canEdit}" onblur="window.updateNote('learnings','${l.id}',this.innerText)">${l.notes}</div>
             <div class="prayer-actions"><button class="celeb-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">✨</button> ${l.celebs ? `<span class="tally-count">${l.celebs}</span>` : ''}</div>
         </div>`;
-    }).join('');
-}
-
-// --- PRAYERS ---
-onValue(prayersRef, snap => { allPrayersData = snap.val(); renderPrayers(); });
-window.postPrayer = async () => {
-    const txt = document.getElementById('prayerText').value; if(!txt) return;
-    await set(push(prayersRef), { name: document.getElementById('anonToggle').checked ? "Anonymous" : (document.getElementById('prayerName').value || "Friend"), request: txt, timestamp: Date.now(), ownerId: myId, status: "active" });
-    document.getElementById('prayerText').value = "";
-};
-function renderPrayers() {
-    const list = document.getElementById('prayer-list'); if(!allPrayersData) { list.innerHTML = "No prayers yet."; return; }
-    const isAdmin = document.body.classList.contains('show-admin');
-    const sorted = Object.entries(allPrayersData).map(([id, val]) => ({ id, ...val })).sort((a,b) => {
-        const order = { active: 1, praise: 2, archive: 3 };
-        return (order[a.status] || 1) - (order[b.status] || 1) || b.timestamp - a.timestamp;
-    });
-    list.innerHTML = sorted.map(p => {
-        const canEdit = isAdmin || p.ownerId === myId;
-        return `<div class="feed-card status-${p.status || 'active'}">
-            ${canEdit ? `<div class="status-controls">
-                <button data-tooltip="Set Active" onclick="window.updateStatus('${p.id}','active')">📍</button>
-                <button data-tooltip="Praise Report" onclick="window.updateStatus('${p.id}','praise')">🙌</button>
-                <button data-tooltip="Archive/Past" onclick="window.updateStatus('${p.id}','archive')">📦</button>
-                <button class="delete-btn" onclick="window.deleteItem('prayers','${p.id}')">🗑️</button>
-            </div>` : ''}
-            <strong>${p.name}${p.status === 'praise' ? ' — Praise! 🙌' : ''}</strong>
-            <div class="${canEdit ? 'editable-note' : ''}" contenteditable="${canEdit}" onblur="window.updateNote('prayers','${p.id}',this.innerText)">${p.request}</div>
-            ${p.status !== 'archive' ? `<div class="prayer-actions"><button class="prayed-btn" onclick="window.incrementTally('prayers','${p.id}','tally')">${p.status === 'praise' ? 'Amen!' : 'I Prayed!'}</button> ${p.tally ? `<span class="tally-count">🙏 ${p.tally}</span>` : ''}</div>` : ''}
-        </div>`;
-    }).join('');
-}
-
-// --- UTILS ---
-window.updateStatus = async (id, s) => await set(ref(db, `prayers/${id}/status`), s);
-window.deleteItem = async (p, id) => { if(confirm("Delete?")) await set(ref(db, `${p}/${id}`), null); };
-window.updateNote = async (p, id, t) => await
