@@ -42,9 +42,14 @@
     <main id="app">
         <div id="view-studies" class="page-view">
             <section class="archive-selector no-print admin-only">
-                <select id="study-date"></select>
-                <button id="editStudyBtn" class="ui-btn">✏️ Edit This Week</button>
-                <button onclick="window.openNewStudyModal()" class="ui-btn" style="background:#27ae60; color:white;">➕ New Week</button>
+                <div class="card" style="border: 2px dashed var(--btn); margin-bottom: 20px;">
+                    <h4 style="margin-top:0">Admin: Manage Weeks</h4>
+                    <select id="study-date"></select>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button id="editStudyBtn" class="ui-btn">✏️ Edit This Week</button>
+                        <button onclick="window.openNewStudyModal()" class="ui-btn" style="background:#27ae60; color:white;">➕ New Week</button>
+                    </div>
+                </div>
             </section>
 
             <div id="study-content">

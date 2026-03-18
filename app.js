@@ -30,6 +30,7 @@ window.setPage = (page) => {
     document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
     document.getElementById(`view-${page}`).style.display = 'block';
     document.getElementById(`nav-${page}`).classList.add('active');
+    
     if (page === 'prayers') { localStorage.setItem('lastPrayerCheck', Date.now()); document.getElementById('prayer-dot').style.display = 'none'; }
     if (page === 'learnings') { localStorage.setItem('lastLearnCheck', Date.now()); document.getElementById('learning-dot').style.display = 'none'; }
     window.scrollTo(0,0);
@@ -62,7 +63,7 @@ function renderLearnings() {
         return `<div class="feed-card">
             ${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}
             <strong>${l.name}</strong><h3 style="margin:5px 0;">${l.title}</h3>
-            <span class="timestamp">Updated: ${new Date(l.timestamp).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
+            <span class="timestamp">Shared: ${new Date(l.timestamp).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
             ${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip} (ESV)</a>` : ''}
             ${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 View Link</a>` : ''}
             <div class="${canEdit ? 'editable-note' : ''}" contenteditable="${canEdit}" onblur="window.updateNote('learnings','${l.id}',this.innerText)">${l.notes}</div>
@@ -117,6 +118,7 @@ onValue(studiesRef, snap => {
     const best = sorted.find(([id, s]) => s.date === tWed) || sorted[0];
     if(best) { document.getElementById('study-date').value = best[1].date; renderStudy(best[1].date); }
 });
+
 onValue(mealsRef, snap => { allMealsData = snap.val() || {}; renderMeals(); const sd = document.getElementById('study-date'); if(sd?.value) renderStudy(sd.value); });
 
 function renderStudy(date) {
@@ -128,6 +130,7 @@ function renderStudy(date) {
     if(meal) { mc.style.display = 'block'; mi.innerHTML = `<p><strong>${meal.name}</strong> is bringing <strong>${meal.dish}</strong>!</p>`; }
     else { const isW = new Date(date.replace(/-/g, '/')).getDay() === 3; mc.style.display = isW ? 'block' : 'none'; mi.innerHTML = `<p style="color:#e67e22;">No meal yet.</p>`; }
 }
+
 function renderMeals() {
     let d = new Date(); d.setDate(d.getDate() + (3 - d.getDay() + 7) % 7);
     const weds = []; for(let i=0; i<4; i++) { weds.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`); d.setDate(d.getDate()+7); }
@@ -137,14 +140,27 @@ function renderMeals() {
         return `<div class="meal-slot"><strong>${dStr}</strong><button class="claim-btn" onclick="window.pClaim('${date}')">Sign Up</button></div>`;
     }).join('');
 }
+
 window.pClaim = async (date, edit) => {
     const name = edit ? allMealsData[date].name : prompt("Name:"); if(!name) return;
     const dish = prompt("Dish?", edit ? allMealsData[date].dish : ""); if(!dish) return;
     await set(ref(db, `meals/${date}`), { name, dish, ownerId: edit ? allMealsData[date].ownerId : myId });
 };
 window.dMeal = async (date) => { if(confirm("Cancel?")) await set(ref(db, `meals/${date}`), null); };
+
 window.openAdmin = () => { if(prompt("Code:") === ADMIN_CODE) { document.body.classList.add('show-admin'); renderPrayers(); renderMeals(); renderLearnings(); } };
 window.openNewStudyModal = () => { currentStudyId = null; document.getElementById('adminModal').style.display='block'; };
+
+document.getElementById('editStudyBtn').onclick = () => {
+    const s = Object.values(allStudiesRawData).find(x => x.date === document.getElementById('study-date').value);
+    if(!s) return;
+    document.getElementById('newDate').value = s.date;
+    document.getElementById('newPassage').value = s.passage;
+    document.getElementById('newActivity').value = s.activity;
+    document.getElementById('newLyrics').value = s.lyrics;
+    document.getElementById('adminModal').style.display = 'block';
+};
+
 document.getElementById('saveStudyBtn').onclick = async () => {
     await set(push(studiesRef), { date: document.getElementById('newDate').value, passage: document.getElementById('newPassage').value, activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value });
     document.getElementById('adminModal').style.display='none';
