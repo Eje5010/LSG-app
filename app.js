@@ -26,15 +26,15 @@ localStorage.setItem('lsg_user_id', myId);
 
 const bibleMap = { "GENESIS":"GEN","EXODUS":"EXO","LEVITICUS":"LEV","NUMBERS":"NUM","DEUTERONOMY":"DEU","JOSHUA":"JOS","JUDGES":"JDG","RUTH":"RUT","1 SAMUEL":"1SA","2 SAMUEL":"2SA","1 KINGS":"1KI","2 KINGS":"2KI","1 CHRONICLES":"1CH","2 CHRONICLES":"2CH","EZRA":"EZR","NEHEMIAH":"NEH","ESTHER":"EST","JOB":"JOB","PSALMS":"PSA","PSALM":"PSA","PROVERBS":"PRO","ECCLESIASTES":"ECC","SONG OF SOLOMON":"SNG","SONG OF SONGS":"SNG","ISAIAH":"ISA","JEREMIAH":"JER","LAMENTATIONS":"LAM","EZEKIEL":"EZK","DANIEL":"DAN","HOSEA":"HOS","JOEL":"JOL","AMOS":"AMO","OBADIAH":"OBA","JONAH":"JON","MICAH":"MIC","NAHUM":"NAM","HABAKKUK":"HAB","ZEPHANIAH":"ZEP","HAGGAI":"HAG","ZECHARIAH":"ZEC","MALACHI":"MAL","MATTHEW":"MAT","MARK":"MRK","LUKE":"LUK","JOHN":"JHN","ACTS":"ACT","ROMANS":"ROM","1 CORINTHIANS":"1CO","2 CORINTHIANS":"2CO","GALATIANS":"GAL","EPHESIANS":"EPH","PHILIPPIANS":"PHP","COLOSSIANS":"COL","1 THESSALONIANS":"1TH","2 THESSALONIANS":"2TH","1 TIMOTHY":"1TI","2 TIMOTHY":"2TI","TITUS":"TIT","PHILEMON":"PHM","HEBREWS":"HEB","JAMES":"JAS","1 PETER":"1PE","2 PETER":"2PE","1 JOHN":"1JN","2 JOHN":"2JN","3 JOHN":"3JN","JUDE":"JUD","REVELATION":"REV" };
 
-// Translation Neutral Bible Link (Uses no specific translation code)
+// Deep-link to Bible App (ESV - Version 59)
 function getBibleLink(ref) {
     let clean = ref.toUpperCase().trim();
     for (let full in bibleMap) { if (clean.startsWith(full)) { clean = clean.replace(full, bibleMap[full]); break; } }
     clean = clean.replace(/\s+/g, '.').replace(/:/g, '.');
-    return `https://www.bible.com/bible/search?q=${clean}`;
+    return `https://www.bible.com/bible/59/${clean}`;
 }
 
-// --- NAV & UI ---
+// --- NAV ---
 window.setPage = (page) => {
     document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
     document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
@@ -45,15 +45,15 @@ window.setPage = (page) => {
 };
 
 window.toggleExtra = (type) => {
-    const field = document.getElementById(`learn${type}`);
-    field.style.display = document.getElementById(`check${type}`).checked ? 'block' : 'none';
+    const area = document.getElementById(`${type.toLowerCase()}InputArea`);
+    area.style.display = document.getElementById(`check${type}`).checked ? 'block' : 'none';
 };
 
 // --- LEARNINGS ---
 onValue(learnsRef, (snap) => { allLearnsData = snap.val(); renderLearnings(); });
 window.postLearning = async () => {
     const title = document.getElementById('learnTitle').value, notes = document.getElementById('learnNotes').value;
-    if(!title || !notes) return alert("Title and Notes required.");
+    if(!title || !notes) return alert("Title and Notes are required.");
     const data = {
         name: document.getElementById('learnName').value || "Friend",
         title: title, notes: notes, timestamp: Date.now(), ownerId: myId,
@@ -77,7 +77,7 @@ function renderLearnings() {
             ${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}
             <strong>${l.name} <small>(${new Date(l.timestamp).toLocaleDateString()})</small></strong>
             <h3 style="margin:5px 0;">${l.title}</h3>
-            ${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip}</a>` : ''}
+            ${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip} (ESV)</a>` : ''}
             ${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 View Link</a>` : ''}
             <div class="${canEdit ? 'editable-note' : ''}" contenteditable="${canEdit}" onblur="window.updateNote('learnings','${l.id}',this.innerText)">${l.notes}</div>
             <div class="prayer-actions"><button class="prayed-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">🙌</button> ${l.celebs ? `<span class="tally-count">${l.celebs}</span>` : ''}</div>
@@ -110,7 +110,7 @@ function renderPrayers() {
     }).join('');
 }
 
-// --- UTILS ---
+// --- SHARED UTILS ---
 window.deleteItem = async (p, id) => { if(confirm("Delete?")) await set(ref(db, `${p}/${id}`), null); };
 window.updateNote = async (p, id, txt) => { await set(ref(db, `${p}/${id}/${p==='prayers'?'request':'notes'}`), txt); };
 window.incrementTally = async (p, id, f) => { const d = p==='prayers'?allPrayersData:allLearnsData; await set(ref(db, `${p}/${id}/${f}`), (d[id][f] || 0) + 1); };
@@ -121,9 +121,9 @@ onValue(studiesRef, (snap) => {
     allStudiesRawData = data;
     const sorted = Object.entries(data).sort((a,b) => new Date(b[1].date) - new Date(a[1].date));
     document.getElementById('study-date').innerHTML = sorted.map(([id, s]) => `<option value="${s.date}">${new Date(s.date.split('-')[0], s.date.split('-')[1]-1, s.date.split('-')[2]).toDateString()}</option>`).join('');
-    const now = new Date(); const dTarget = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    dTarget.setDate(dTarget.getDate() + (3 - dTarget.getDay() + 7) % 7);
-    const tWed = `${dTarget.getFullYear()}-${String(dTarget.getMonth()+1).padStart(2,'0')}-${String(dTarget.getDate()).padStart(2,'0')}`;
+    const now = new Date(); const dT = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    dT.setDate(dT.getDate() + (3 - dT.getDay() + 7) % 7);
+    const tWed = `${dT.getFullYear()}-${String(dT.getMonth()+1).padStart(2,'0')}-${String(dT.getDate()).padStart(2,'0')}`;
     const best = sorted.find(([id, s]) => s.date === tWed) || sorted[0];
     document.getElementById('study-date').value = best[1].date; renderStudy(best[1].date);
 });
@@ -132,12 +132,12 @@ onValue(mealsRef, (snap) => { allMealsData = snap.val() || {}; renderMeals(); co
 
 function renderStudy(date) {
     const s = Object.values(allStudiesRawData).find(x => x.date === date); if(!s) return;
-    document.getElementById('passage-text').innerHTML = (s.passage || "").split('\n').filter(p => p.trim()).map(p => `<div style="margin-bottom:10px;"><p class="scripture">${p}</p><a href="${getBibleLink(p)}" target="_blank" style="color:var(--btn);font-size:0.8rem;">Open Bible</a></div>`).join('');
+    document.getElementById('passage-text').innerHTML = (s.passage || "").split('\n').filter(p => p.trim()).map(p => `<div style="margin-bottom:10px;"><p class="scripture">${p}</p><a href="${getBibleLink(p)}" target="_blank" style="color:var(--btn);font-size:0.8rem;">Open Bible (ESV)</a></div>`).join('');
     document.getElementById('activity-desc').innerText = s.activity || '';
     document.getElementById('lyrics-container').innerText = s.lyrics || '';
     const meal = allMealsData[date], mc = document.getElementById('study-meal-card'), mi = document.getElementById('study-meal-info');
     if(meal) { mc.style.display = 'block'; mi.innerHTML = `<p><strong>${meal.name}</strong> is bringing <strong>${meal.dish}</strong>!</p>`; }
-    else { const isW = new Date(date.split('-')[0], date.split('-')[1]-1, date.split('-')[2]).getDay() === 3; mc.style.display = isW ? 'block' : 'none'; mi.innerHTML = `<p style="color:#e67e22;">No meal yet.</p>`; }
+    else { const isW = new Date(date.split('-')[0], date.split('-')[1]-1, date.split('-')[2]).getDay() === 3; mc.style.display = isW ? 'block' : 'none'; mi.innerHTML = `<p style="color:#e67e22;">No meal sign-up yet.</p>`; }
 }
 
 function renderMeals() {

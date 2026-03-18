@@ -68,20 +68,24 @@
         <div id="view-learnings" class="page-view" style="display:none;">
             <section class="card"><h2>Community Learning</h2><div id="learning-list"></div></section>
             <section class="card no-print">
-                <h3>Share What You're Learning</h3>
+                <h3>Share Your Learning</h3>
                 <div class="input-group">
                     <input type="text" id="learnName" placeholder="Your Name">
-                    <input type="text" id="learnTitle" placeholder="Title (e.g., Morning Devotional, Podcast Name)">
+                    <input type="text" id="learnTitle" placeholder="Title (e.g. Morning Devotional)">
                     
                     <div class="checkbox-row">
-                        <label><input type="checkbox" id="checkScrip" onchange="toggleExtra('Scrip')"> Scripture</label>
-                        <label><input type="checkbox" id="checkUrl" onchange="toggleExtra('Url')"> URL</label>
+                        <label><input type="checkbox" id="checkScrip" onchange="toggleExtra('Scrip')"> Add Scripture</label>
+                        <label><input type="checkbox" id="checkUrl" onchange="toggleExtra('Url')"> Add URL</label>
                     </div>
 
-                    <input type="text" id="learnScrip" placeholder="Scripture (e.g., John 3:16)" style="display:none;">
-                    <input type="url" id="learnUrl" placeholder="https://..." style="display:none;">
+                    <div id="scripInputArea" style="display:none;">
+                        <input type="text" id="learnScrip" placeholder="Scripture (e.g. John 3:16)">
+                    </div>
+                    <div id="urlInputArea" style="display:none;">
+                        <input type="url" id="learnUrl" placeholder="https://youtube.com/...">
+                    </div>
                     
-                    <textarea id="learnNotes" placeholder="What did you learn?"></textarea>
+                    <textarea id="learnNotes" placeholder="Notes on what you learned..."></textarea>
                     <button onclick="window.postLearning()" class="post-btn">Share Insights</button>
                 </div>
             </section>
