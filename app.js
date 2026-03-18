@@ -12,66 +12,102 @@ const firebaseConfig = {
     measurementId: "G-DEBFM292Z4"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const studiesRef = ref(db, 'studies'), prayersRef = ref(db, 'prayers'), mealsRef = ref(db, 'meals'), learnsRef = ref(db, 'learnings');
+document.addEventListener('DOMContentLoaded', () => {
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const studiesRef = ref(db, 'studies'), prayersRef = ref(db, 'prayers'), mealsRef = ref(db, 'meals'), learnsRef = ref(db, 'learnings');
 
-const ADMIN_CODE = "Grace2026";
-let allStudiesRawData = {}, allPrayersData = null, allMealsData = {}, allLearnsData = null;
-let currentStudyId = null, myId = localStorage.getItem('lsg_user_id') || ('user_' + Math.random().toString(36).substr(2, 9));
-localStorage.setItem('lsg_user_id', myId);
+    const ADMIN_CODE = "Grace2026";
+    let allStudiesRawData = {}, allPrayersData = null, allMealsData = {}, allLearnsData = null;
+    let myId = localStorage.getItem('lsg_user_id') || ('user_' + Math.random().toString(36).substr(2, 9));
+    localStorage.setItem('lsg_user_id', myId);
 
-function getBibleLink(ref) {
-    return `https://www.bible.com/search/bible?q=${encodeURIComponent(ref.trim())}`;
-}
+    function getBibleLink(ref) { return `https://www.bible.com/search/bible?q=${encodeURIComponent(ref.trim())}`; }
 
-window.setPage = (page) => {
-    document.querySelectorAll('.page-view').forEach(p => { p.style.display = 'none'; });
-    const activePage = document.getElementById(`view-${page}`);
-    if (activePage) activePage.style.display = 'block';
+    // --- ATTACH TO WINDOW ---
+    window.setPage = (page) => {
+        document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
+        const active = document.getElementById(`view-${page}`);
+        if (active) active.style.display = 'block';
+        document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById(`nav-${page}`);
+        if (btn) btn.classList.add('active');
+        window.scrollTo(0,0);
+    };
 
-    document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
-    const activeBtn = document.getElementById(`nav-${page}`);
-    if (activeBtn) activeBtn.classList.add('active');
-    
-    if (page === 'prayers') { localStorage.setItem('lastPrayerCheck', Date.now()); document.getElementById('prayer-dot').style.display = 'none'; }
-    if (page === 'learnings') { localStorage.setItem('lastLearnCheck', Date.now()); document.getElementById('learning-dot').style.display = 'none'; }
-    window.scrollTo(0,0);
-};
+    window.toggleExtra = (t) => {
+        const el = document.getElementById(`${t.toLowerCase()}InputArea`);
+        if (el) el.style.display = document.getElementById(`check${t}`).checked ? 'block' : 'none';
+    };
 
-window.toggleExtra = (t) => {
-    const el = document.getElementById(`${t.toLowerCase()}InputArea`);
-    if (el) el.style.display = document.getElementById(`check${t}`).checked ? 'block' : 'none';
-};
-
-// --- LEARNINGS ---
-onValue(learnsRef, snap => { allLearnsData = snap.val(); renderLearnings(); });
-window.postLearning = async () => {
-    const title = document.getElementById('learnTitle').value, notes = document.getElementById('learnNotes').value;
-    if(!title || !notes) return alert("Title and Notes are required.");
-    await set(push(learnsRef), {
-        name: document.getElementById('learnName').value || "Friend",
-        title, notes, timestamp: Date.now(), ownerId: myId,
-        scrip: document.getElementById('checkScrip').checked ? document.getElementById('learnScrip').value : null,
-        url: document.getElementById('checkUrl').checked ? document.getElementById('learnUrl').value : null
+    // --- DATA HANDLING ---
+    onValue(learnsRef, snap => { 
+        allLearnsData = snap.val(); 
+        const list = document.getElementById('learning-list');
+        if(!allLearnsData) { list.innerHTML = "<p>No insights yet.</p>"; return; }
+        const all = Object.entries(allLearnsData).map(([id, val]) => ({ id, ...val })).sort((a,b) => b.timestamp - a.timestamp);
+        list.innerHTML = all.map(l => {
+            const canEdit = document.body.classList.contains('show-admin') || l.ownerId === myId;
+            return `<div class="feed-card">${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}<strong>${l.name}</strong><h3 style="margin:5px 0;">${l.title}</h3><span class="timestamp">Shared: ${new Date(l.timestamp).toLocaleDateString()}</span>${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip}</a>` : ''}${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 Link</a>` : ''}<div class="editable-note">${l.notes}</div><div class="prayer-actions"><button class="celeb-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">✨</button> ${l.celebs || 0}</div></div>`;
+        }).join('');
     });
-    ['learnTitle','learnNotes','learnScrip','learnUrl'].forEach(id => document.getElementById(id).value = "");
-    ['checkScrip','checkUrl'].forEach(id => { document.getElementById(id).checked = false; window.toggleExtra(id.replace('check','')); });
-};
 
-function renderLearnings() {
-    const list = document.getElementById('learning-list'); if(!allLearnsData) { list.innerHTML = "<p style='text-align:center; padding:20px;'>No insights shared yet.</p>"; return; }
-    const all = Object.entries(allLearnsData).map(([id, val]) => ({ id, ...val })).sort((a,b) => b.timestamp - a.timestamp);
-    const last = localStorage.getItem('lastLearnCheck') || 0;
-    if (Math.max(...all.map(r => r.timestamp)) > last && !document.getElementById('nav-learnings').classList.contains('active')) document.getElementById('learning-dot').style.display = 'block';
-    list.innerHTML = all.map(l => {
-        const canEdit = document.body.classList.contains('show-admin') || l.ownerId === myId;
-        return `<div class="feed-card">
-            ${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}
-            <strong>${l.name}</strong><h3 style="margin:5px 0;">${l.title}</h3>
-            <span class="timestamp">Shared: ${new Date(l.timestamp).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
-            ${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip} (ESV)</a>` : ''}
-            ${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 View Link</a>` : ''}
-            <div class="${canEdit ? 'editable-note' : ''}" contenteditable="${canEdit}" onblur="window.updateNote('learnings','${l.id}',this.innerText)">${l.notes}</div>
-            <div class="prayer-actions"><button class="celeb-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">✨</button> ${l.celebs ? `<span class="tally-count">${l.celebs}</span>` : ''}</div>
-        </div>`;
+    onValue(prayersRef, snap => {
+        allPrayersData = snap.val();
+        const list = document.getElementById('prayer-list');
+        if(!allPrayersData) { list.innerHTML = "<p>No prayers yet.</p>"; return; }
+        const sorted = Object.entries(allPrayersData).map(([id, val]) => ({ id, ...val })).sort((a,b) => b.timestamp - a.timestamp);
+        list.innerHTML = sorted.map(p => {
+            const canEdit = document.body.classList.contains('show-admin') || p.ownerId === myId;
+            return `<div class="feed-card status-${p.status || 'active'}">${canEdit ? `<div style="float:right;"><button onclick="window.updateStatus('${p.id}','praise')">🙌</button><button onclick="window.deleteItem('prayers','${p.id}')">🗑️</button></div>` : ''}<strong>${p.name}</strong><p>${p.request}</p><div class="prayer-actions"><button class="prayed-btn" onclick="window.incrementTally('prayers','${p.id}','tally')">I Prayed!</button> 🙏 ${p.tally || 0}</div></div>`;
+        }).join('');
+    });
+
+    onValue(studiesRef, snap => {
+        allStudiesRawData = snap.val() || {};
+        const sorted = Object.entries(allStudiesRawData).sort((a,b) => new Date(b[1].date) - new Date(a[1].date));
+        const sel = document.getElementById('study-date');
+        if (sel && sorted.length > 0) {
+            sel.innerHTML = sorted.map(([id, s]) => `<option value="${s.date}">${s.date}</option>`).join('');
+            renderStudy(sel.value);
+        }
+    });
+
+    function renderStudy(date) {
+        const s = Object.values(allStudiesRawData).find(x => x.date === date);
+        if(!s) return;
+        document.getElementById('passage-text').innerHTML = (s.passage || "").split('\n').map(p => `<p class="scripture">${p}</p><a href="${getBibleLink(p)}" target="_blank" style="font-size:0.7rem;">Open Bible</a>`).join('');
+        document.getElementById('activity-desc').innerText = s.activity || '';
+        document.getElementById('lyrics-container').innerText = s.lyrics || '';
+    }
+
+    // --- ACTIONS ---
+    window.postLearning = () => {
+        const title = document.getElementById('learnTitle').value, notes = document.getElementById('learnNotes').value;
+        if(!title || !notes) return alert("Fill fields");
+        set(push(learnsRef), { name: document.getElementById('learnName').value || "Friend", title, notes, timestamp: Date.now(), ownerId: myId, scrip: document.getElementById('checkScrip').checked ? document.getElementById('learnScrip').value : null, url: document.getElementById('checkUrl').checked ? document.getElementById('learnUrl').value : null });
+    };
+
+    window.postPrayer = () => {
+        const txt = document.getElementById('prayerText').value;
+        if(!txt) return;
+        set(push(prayersRef), { name: document.getElementById('prayerName').value || "Friend", request: txt, timestamp: Date.now(), ownerId: myId, status: "active" });
+    };
+
+    window.updateStatus = (id, s) => set(ref(db, `prayers/${id}/status`), s);
+    window.deleteItem = (p, id) => { if(confirm("Delete?")) set(ref(db, `${p}/${id}`), null); };
+    window.incrementTally = (p, id, f) => {
+        const d = p === 'prayers' ? allPrayersData : allLearnsData;
+        if(d[id]) set(ref(db, `${p}/${id}/${f}`), (d[id][f] || 0) + 1);
+    };
+
+    window.openAdmin = () => { if(prompt("Code:") === ADMIN_CODE) document.body.classList.add('show-admin'); };
+    window.openNewStudyModal = () => { document.getElementById('adminModal').style.display='block'; };
+    
+    document.getElementById('saveStudyBtn').onclick = () => {
+        set(push(studiesRef), { date: document.getElementById('newDate').value, passage: document.getElementById('newPassage').value, activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value });
+        document.getElementById('adminModal').style.display='none';
+    };
+
+    window.setPage('studies');
+});

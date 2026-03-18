@@ -1,45 +1,27 @@
-:root { 
-    --bg: #f4f7f6; --card: #ffffff; --text: #333; --accent: #2c3e50; --btn: #3498db; 
-    --praise: #f1c40f; --archive: #95a5a6; 
-}
+:root { --bg: #f4f7f6; --card: #ffffff; --text: #333; --accent: #2c3e50; --btn: #3498db; --praise: #f1c40f; }
 [data-theme="dark"] { --bg: #1a1a1a; --card: #2d2d2d; --text: #eee; --accent: #000; }
-
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; padding-bottom: 80px; }
-
-/* Layout Scaffolding */
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; }
 .nav-inner, #app { max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 .navbar { background: var(--accent); color: white; padding: 1rem; position: sticky; top: 0; z-index: 1000; }
 .nav-inner { display: flex; justify-content: space-between; align-items: center; }
-.navbar h1 { font-size: clamp(1rem, 4vw, 1.4rem); margin: 0; flex: 1; }
-
-/* Cards & Feed */
+.navbar h1 { font-size: clamp(1rem, 4vw, 1.4rem); margin: 0; }
 #app { padding: 20px; }
 .card { background: var(--card); padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 .admin-border { border: 2px dashed var(--btn); background: rgba(52, 152, 219, 0.05); }
-
-.feed-card { 
-    background: var(--card); border: 2px solid rgba(0,0,0,0.08); border-radius: 20px; 
-    padding: 20px; margin-bottom: 20px; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
-}
-
-/* Tooltips */
-.status-controls button { position: relative; background: var(--bg); border: 1px solid #ddd; border-radius: 6px; cursor: pointer; padding: 5px 8px; }
-.status-controls button::after {
-    content: attr(data-tooltip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
-    background: #333; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap;
-    visibility: hidden; opacity: 0; transition: 0.2s; z-index: 10;
-}
-.status-controls button:hover::after { visibility: visible; opacity: 1; }
-
-/* Status Logic */
+.feed-card { background: var(--card); border: 2px solid rgba(0,0,0,0.08); border-radius: 20px; padding: 20px; margin-bottom: 20px; position: relative; }
 .status-praise { border-color: var(--praise) !important; background: rgba(241, 196, 15, 0.03); }
 .status-archive { opacity: 0.45; filter: grayscale(60%); }
-.status-controls { float: right; display: flex; gap: 5px; }
-
-/* Navigation */
 .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--accent); height: 65px; z-index: 1000; border-top: 1px solid rgba(255,255,255,0.1); }
 .bottom-nav .nav-inner { display: flex; height: 100%; }
 .bottom-nav button { flex: 1; background: none; border: none; color: rgba(255,255,255,0.5); font-weight: bold; cursor: pointer; font-size: 0.85rem; }
 .bottom-nav button.active { color: white; border-top: 4px solid var(--btn); }
-
-.notification-dot { position: absolute; top
+.admin-only { display: none !important; }
+body.show-admin .admin-only { display: block !important; }
+#view-studies[style*="display: none"] .admin-only { display: none !important; }
+input, textarea, select { width: 100%; margin: 8px 0; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; background: var(--card); color: var(--text); }
+.post-btn { background: var(--btn); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
+.prayed-btn, .celeb-btn { border: 1.5px solid var(--btn); background: transparent; color: var(--btn); padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+.prayed-btn { background: #f1c40f; border: none; color: #2c3e50; }
+.scripture { font-style: italic; border-left: 5px solid var(--btn); padding-left: 15px; color: var(--btn); font-size: 1.1rem; }
+pre { white-space: pre-wrap; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; font-family: inherit; line-height: 1.6; }
+.timestamp { font-size: 0.7rem; color: #888; display: block; margin-top: 5px; }
