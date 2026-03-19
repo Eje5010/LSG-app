@@ -24,13 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getBibleLink(ref) { return `https://www.bible.com/search/bible?q=${encodeURIComponent(ref.trim())}`; }
 
-    // --- NUCLEAR NAVIGATION LOCK ---
     window.setPage = (page) => {
         document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
         const active = document.getElementById(`view-${page}`);
         if (active) active.style.display = 'block';
 
-        // Check Admin visibility context
         const isAdmin = document.body.classList.contains('show-admin');
         const adminCtrl = document.getElementById('admin-study-ctrl');
         const userCtrl = document.getElementById('user-study-selector');
@@ -56,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) el.style.display = document.getElementById(`check${t}`).checked ? 'block' : 'none';
     };
 
-    // --- DATA LISTENERS ---
     onValue(learnsRef, snap => { 
         allLearnsData = snap.val(); 
         const list = document.getElementById('learning-list');
@@ -79,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         list.innerHTML = sorted.map(p => {
             const canEdit = document.body.classList.contains('show-admin') || p.ownerId === myId;
             const isPraise = p.status === 'praise';
+            const dateDisplay = p.timestamp ? new Date(p.timestamp).toLocaleDateString() : "";
             return `<div class="feed-card status-${p.status || 'active'}">
                 ${canEdit ? `<div style="float:right; display:flex; gap:5px;">
                     <button onclick="window.updateStatus('${p.id}','active')">📍</button>
@@ -86,7 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button onclick="window.updateStatus('${p.id}','archive')">📦</button>
                     <button class="delete-btn" onclick="window.deleteItem('prayers','${p.id}')">🗑️</button>
                 </div>` : ''}
-                <strong>${p.name}${isPraise ? ' — Praise! 🙌' : ''}</strong><p>${p.request}</p>
+                <strong>${p.name}${isPraise ? ' — Praise! 🙌' : ''}</strong>
+                <span class="timestamp">${dateDisplay}</span>
+                <p>${p.request}</p>
                 ${p.status !== 'archive' ? `<div class="prayer-actions"><button class="prayed-btn" onclick="window.incrementTally('prayers','${p.id}','tally')">${isPraise ? 'Amen!' : 'I Prayed!'}</button> 🙏 ${p.tally || 0}</div>` : ''}
             </div>`;
         }).join('');
@@ -122,8 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.handleStudyChange = (val) => {
-        document.getElementById('study-date').value = val;
-        document.getElementById('user-study-date').value = val;
+        const as = document.getElementById('study-date'), us = document.getElementById('user-study-date');
+        if(as) as.value = val; if(us) us.value = val;
         renderStudy(val);
     };
 
@@ -150,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    // --- ACTIONS ---
     window.postLearning = () => {
         const title = document.getElementById('learnTitle').value, notes = document.getElementById('learnNotes').value;
         if(!title || !notes) return;
@@ -194,19 +193,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openNewStudyModal = () => { document.getElementById('adminModal').style.display='block'; };
     
-    document.getElementById('editStudyBtn').onclick = () => {
-        const s = Object.values(allStudiesRawData).find(x => x.date === document.getElementById('study-date').value);
-        if(s) {
-            document.getElementById('newDate').value = s.date;
-            document.getElementById('newPassage').value = s.passage;
-            document.getElementById('newActivity').value = s.activity;
-            document.getElementById('newLyrics').value = s.lyrics;
-            document.getElementById('adminModal').style.display = 'block';
-        }
-    };
+    const editBtn = document.getElementById('editStudyBtn');
+    if(editBtn) {
+        editBtn.onclick = () => {
+            const s = Object.values(allStudiesRawData).find(x => x.date === document.getElementById('study-date').value);
+            if(s) {
+                document.getElementById('newDate').value = s.date;
+                document.getElementById('newPassage').value = s.passage;
+                document.getElementById('newActivity').value = s.activity;
+                document.getElementById('newLyrics').value = s.lyrics;
+                document.getElementById('adminModal').style.display = 'block';
+            }
+        };
+    }
 
     document.getElementById('saveStudyBtn').onclick = () => {
         const date = document.getElementById('newDate').value;
+        if(!date) return alert("Date required");
         set(ref(db, `studies/${date.replace(/-/g, '')}`), { date, passage: document.getElementById('newPassage').value, activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value });
         document.getElementById('adminModal').style.display='none';
     };
