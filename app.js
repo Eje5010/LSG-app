@@ -22,7 +22,48 @@ document.addEventListener('DOMContentLoaded', () => {
     let myId = localStorage.getItem('lsg_user_id') || ('user_' + Math.random().toString(36).substr(2, 9));
     localStorage.setItem('lsg_user_id', myId);
 
-    function getBibleLink(ref) { return `https://www.bible.com/search/bible?q=${encodeURIComponent(ref.trim())}`; }
+function getBibleLink(ref) {
+    // 1. Dictionary of Book Name to OSIS Code
+    const bookMap = {
+        "Genesis": "GEN", "Exodus": "EXO", "Leviticus": "LEV", "Numbers": "NUM", "Deuteronomy": "DEU",
+        "Joshua": "JOS", "Judges": "JDG", "Ruth": "RUT", "1 Samuel": "1SA", "2 Samuel": "2SA",
+        "1 Kings": "1KI", "2 Kings": "2KI", "1 Chronicles": "1CH", "2 Chronicles": "2CH",
+        "Ezra": "EZR", "Nehemiah": "NEH", "Esther": "EST", "Job": "JOB", "Psalms": "PSA", "Psalm": "PSA",
+        "Proverbs": "PRO", "Ecclesiastes": "ECC", "Song of Solomon": "SNG", "Isaiah": "ISA",
+        "Jeremiah": "JER", "Lamentations": "LAM", "Ezekiel": "EZK", "Daniel": "DAN", "Hosea": "HOS",
+        "Joel": "JOE", "Amos": "AMO", "Obadiah": "OBA", "Jonah": "JON", "Micah": "MIC", "Nahum": "NAM",
+        "Habakkuk": "HAB", "Zephaniah": "ZEP", "Haggai": "HAG", "Zechariah": "ZEC", "Malachi": "MAL",
+        "Matthew": "MAT", "Mark": "MRK", "Luke": "LUK", "John": "JHN", "Acts": "ACT", "Romans": "ROM",
+        "1 Corinthians": "1CO", "2 Corinthians": "2CO", "Galatians": "GAL", "Ephesians": "EPH",
+        "Philippians": "PHP", "Colossians": "COL", "1 Thessalonians": "1TH", "2 Thessalonians": "2TH",
+        "1 Timothy": "1TI", "2 Timothy": "2TI", "Titus": "TIT", "Philemon": "PHM", "Hebrews": "HEB",
+        "James": "JAS", "1 Peter": "1PE", "2 Peter": "2PE", "1 John": "1JN", "2 John": "2JN",
+        "3 John": "3JN", "Jude": "JUD", "Revelation": "REV"
+    };
+
+    // 2. Clean and Parse the input (e.g., "1 Samuel 3:1-10")
+    let clean = ref.trim();
+    let bookName = "";
+    let chapterVerse = "";
+
+    // Check for books starting with a number (1 Samuel, etc)
+    if (/^\d/.test(clean)) {
+        const parts = clean.split(' ');
+        bookName = parts[0] + " " + parts[1];
+        chapterVerse = parts.slice(2).join('');
+    } else {
+        const parts = clean.split(' ');
+        bookName = parts[0];
+        chapterVerse = parts.slice(1).join('');
+    }
+
+    // 3. Get Code and Format for YouVersion
+    const code = bookMap[bookName] || bookName.substring(0, 3).toUpperCase();
+    const finalRef = (code + "." + chapterVerse).replace(/:/g, '.');
+
+    // Return the ESV (59) deep link
+    return `https://www.bible.com/bible/59/${finalRef}`;
+}
 
     window.setPage = (page) => {
         document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
@@ -193,25 +234,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openNewStudyModal = () => { document.getElementById('adminModal').style.display='block'; };
     
-    const editBtn = document.getElementById('editStudyBtn');
-    if(editBtn) {
-        editBtn.onclick = () => {
-            const s = Object.values(allStudiesRawData).find(x => x.date === document.getElementById('study-date').value);
-            if(s) {
-                document.getElementById('newDate').value = s.date;
-                document.getElementById('newPassage').value = s.passage;
-                document.getElementById('newActivity').value = s.activity;
-                document.getElementById('newLyrics').value = s.lyrics;
-                document.getElementById('adminModal').style.display = 'block';
-            }
-        };
-    }
-
     document.getElementById('saveStudyBtn').onclick = () => {
         const date = document.getElementById('newDate').value;
         if(!date) return alert("Date required");
         set(ref(db, `studies/${date.replace(/-/g, '')}`), { date, passage: document.getElementById('newPassage').value, activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value });
         document.getElementById('adminModal').style.display='none';
+    };
+
+    document.getElementById('editStudyBtn').onclick = () => {
+        const s = Object.values(allStudiesRawData).find(x => x.date === document.getElementById('study-date').value);
+        if(s) {
+            document.getElementById('newDate').value = s.date;
+            document.getElementById('newPassage').value = s.passage;
+            document.getElementById('newActivity').value = s.activity;
+            document.getElementById('newLyrics').value = s.lyrics;
+            document.getElementById('adminModal').style.display = 'block';
+        }
     };
 
     document.getElementById('theme-toggle').onchange = (e) => document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
