@@ -22,6 +22,7 @@
                     </label>
                 </div>
                 <button id="adminBtn" class="ui-btn" onclick="window.openAdmin()">Admin</button>
+                <button id="signOutBtn" class="ui-btn admin-only" onclick="window.signOutAdmin()" style="background:#e74c3c; color:white; border:none;">Sign Out</button>
             </div>
         </div>
     </nav>
@@ -41,13 +42,18 @@
 
     <main id="app">
         <div id="view-studies" class="page-view" style="display: block;">
-            <section id="admin-study-ctrl" class="archive-selector no-print admin-only">
-                <div class="card admin-border">
-                    <h4 style="margin:0 0 10px 0; color: var(--btn);">Admin: Study Manager</h4>
-                    <select id="study-date"></select>
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button id="editStudyBtn" class="ui-btn">✏️ Edit Current</button>
-                        <button onclick="window.openNewStudyModal()" class="ui-btn" style="background:#27ae60; color:white;">➕ New Week</button>
+            <section class="archive-selector no-print">
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+                    <label for="study-date" style="font-weight: bold; font-size: 0.9rem;">Select Week:</label>
+                    <select id="study-date" onchange="window.handleStudyChange(this.value)"></select>
+                </div>
+                <div class="admin-only">
+                    <div class="card admin-border" style="margin-bottom: 20px;">
+                        <h4 style="margin:0 0 10px 0; color: var(--btn);">Admin: Study Manager</h4>
+                        <div style="display:flex; gap:10px;">
+                            <button id="editStudyBtn" class="ui-btn">✏️ Edit Current</button>
+                            <button onclick="window.openNewStudyModal()" class="ui-btn" style="background:#27ae60; color:white;">➕ New Week</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -55,7 +61,10 @@
             <div id="study-content">
                 <section class="card"><h2>Passages</h2><div id="passage-text"></div></section>
                 <section class="card"><h2>Activity</h2><p id="activity-desc"></p></section>
-                <section id="study-meal-card" class="card" style="display:none;"><h2>Wednesday Meal</h2><div id="study-meal-info"></div></section>
+                <section id="study-meal-card" class="card" style="display:none;">
+                    <h2>Wednesday Meal</h2>
+                    <div id="study-meal-info"></div>
+                </section>
                 <section class="card"><h2>Worship Lyrics</h2><pre id="lyrics-container"></pre></section>
                 <button onclick="window.shareStudy()" class="post-btn" style="background: var(--accent); margin-bottom: 20px;">🔗 Share Study</button>
             </div>
@@ -66,7 +75,6 @@
             <section class="card no-print">
                 <h3>Post a Request</h3>
                 <input type="text" id="prayerName" placeholder="Your Name">
-                <label class="anon-label"><input type="checkbox" id="anonToggle"> Post Anonymously</label>
                 <textarea id="prayerText" placeholder="What can we pray for?"></textarea>
                 <button onclick="window.postPrayer()" class="post-btn">Post Request</button>
             </section>
@@ -103,9 +111,8 @@
             <textarea id="newLyrics" rows="4" placeholder="Lyrics..."></textarea>
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button id="saveStudyBtn" class="post-btn" style="margin-top:0;">Save</button>
-                <button id="deleteStudyBtn" class="admin-only ui-btn" style="background:#e74c3c; color:white;">Delete</button>
+                <button onclick="document.getElementById('adminModal').style.display='none'" class="ui-btn" style="flex:1;">Cancel</button>
             </div>
-            <button onclick="document.getElementById('adminModal').style.display='none'" class="ui-btn" style="width:100%; margin-top:10px;">Cancel</button>
         </div>
     </div>
     <script type="module" src="app.js"></script>
