@@ -22,7 +22,7 @@
                     </label>
                 </div>
                 <button id="adminBtn" class="ui-btn" onclick="window.openAdmin()">Admin</button>
-                <button id="signOutBtn" class="ui-btn admin-only" onclick="window.signOutAdmin()" style="background:#e74c3c; color:white; border:none;">Sign Out</button>
+                <button id="signOutBtn" class="ui-btn" onclick="window.signOutAdmin()" style="display:none; background:#e74c3c; color:white; border:none;">Sign Out</button>
             </div>
         </div>
     </nav>
@@ -42,29 +42,26 @@
 
     <main id="app">
         <div id="view-studies" class="page-view" style="display: block;">
-            <section class="archive-selector no-print">
-                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
-                    <label for="study-date" style="font-weight: bold; font-size: 0.9rem;">Select Week:</label>
+            <section id="admin-study-ctrl" class="card admin-border no-print" style="display: none !important;">
+                <h4 style="margin:0 0 10px 0; color: var(--btn);">Admin: Study Manager</h4>
+                <div style="display:flex; gap:10px; margin-bottom: 10px;">
                     <select id="study-date" onchange="window.handleStudyChange(this.value)"></select>
                 </div>
-                <div class="admin-only">
-                    <div class="card admin-border" style="margin-bottom: 20px;">
-                        <h4 style="margin:0 0 10px 0; color: var(--btn);">Admin: Study Manager</h4>
-                        <div style="display:flex; gap:10px;">
-                            <button id="editStudyBtn" class="ui-btn">✏️ Edit Current</button>
-                            <button onclick="window.openNewStudyModal()" class="ui-btn" style="background:#27ae60; color:white;">➕ New Week</button>
-                        </div>
-                    </div>
+                <div style="display:flex; gap:10px;">
+                    <button id="editStudyBtn" class="ui-btn">✏️ Edit This Week</button>
+                    <button onclick="window.openNewStudyModal()" class="ui-btn" style="background:#27ae60; color:white;">➕ New Week</button>
                 </div>
+            </section>
+
+            <section id="user-study-selector" class="no-print" style="margin-bottom: 20px;">
+                <label style="font-weight:bold; font-size:0.9rem;">Select Week: </label>
+                <select id="user-study-date" onchange="window.handleStudyChange(this.value)"></select>
             </section>
 
             <div id="study-content">
                 <section class="card"><h2>Passages</h2><div id="passage-text"></div></section>
                 <section class="card"><h2>Activity</h2><p id="activity-desc"></p></section>
-                <section id="study-meal-card" class="card" style="display:none;">
-                    <h2>Wednesday Meal</h2>
-                    <div id="study-meal-info"></div>
-                </section>
+                <section id="study-meal-card" class="card" style="display:none;"><h2>Wednesday Meal</h2><div id="study-meal-info"></div></section>
                 <section class="card"><h2>Worship Lyrics</h2><pre id="lyrics-container"></pre></section>
                 <button onclick="window.shareStudy()" class="post-btn" style="background: var(--accent); margin-bottom: 20px;">🔗 Share Study</button>
             </div>
@@ -102,7 +99,7 @@
         </div>
     </main>
 
-    <div id="adminModal" class="modal">
+    <div id="adminModal" class="modal" style="display:none;">
         <div class="modal-content">
             <h3>Manage Study</h3>
             <input type="date" id="newDate">

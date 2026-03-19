@@ -1,21 +1,4 @@
-:root { 
-    --bg: #f4f7f6; --card: #ffffff; --text: #333; --accent: #2c3e50; --btn: #3498db; 
-    --praise: #f1c40f; --archive: #95a5a6; 
-}
-[data-theme="dark"] { --bg: #1a1a1a; --card: #2d2d2d; --text: #eee; --accent: #000; }
-
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; padding-bottom: 80px; }
-
-/* Desktop Scaffolding */
-.nav-inner, #app { max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-.navbar { background: var(--accent); color: white; padding: 1rem; position: sticky; top: 0; z-index: 1000; }
-.nav-inner { display: flex; justify-content: space-between; align-items: center; }
-.navbar h1 { font-size: clamp(1rem, 4vw, 1.4rem); margin: 0; flex: 1; }
-
-/* Feed Cards */
-#app { padding: 20px; }
-.card { background: var(--card); padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-.admin-border { border: 2px dashed var(--btn); background: rg:root { --bg: #f4f7f6; --card: #ffffff; --text: #333; --accent: #2c3e50; --btn: #3498db; --praise: #f1c40f; }
+:root { --bg: #f4f7f6; --card: #ffffff; --text: #333; --accent: #2c3e50; --btn: #3498db; --praise: #f1c40f; }
 [data-theme="dark"] { --bg: #1a1a1a; --card: #2d2d2d; --text: #eee; --accent: #000; }
 body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; }
 .nav-inner, #app { max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; }
@@ -26,10 +9,11 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .card { background: var(--card); padding: 25px; border-radius: 18px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 .feed-card { background: var(--card); border: 2px solid rgba(0,0,0,0.08); border-radius: 20px; padding: 20px; margin-bottom: 20px; position: relative; }
 .admin-border { border: 2px dashed var(--btn) !important; background: rgba(52, 152, 219, 0.03) !important; }
-.admin-only { display: none !important; }
-body.show-admin .admin-only { display: block !important; }
-#view-studies[style*="display: none"] .admin-only { display: none !important; }
-body.show-admin #adminBtn { display: none !important; }
+
+/* HARD LOCK CSS */
+.admin-only, #admin-study-ctrl { display: none !important; }
+body.show-admin .status-controls, body.show-admin .delete-btn { display: flex !important; }
+
 .status-praise { border: 2px solid var(--praise) !important; background: rgba(241, 196, 15, 0.03); }
 .status-archive { opacity: 0.4; filter: grayscale(100%); }
 .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--accent); height: 65px; z-index: 1000; border-top: 1px solid rgba(255,255,255,0.1); }
@@ -42,48 +26,6 @@ body.show-admin #adminBtn { display: none !important; }
 .prayed-btn { background: #f1c40f; border: none; color: #2c3e50; }
 .scripture { font-style: italic; border-left: 5px solid var(--btn); padding-left: 15px; color: var(--btn); font-size: 1.1rem; }
 pre { white-space: pre-wrap; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; font-family: inherit; line-height: 1.6; }
-.timestamp { font-size: 0.75rem; color: #888; display: block; margin: 5px 0; }
 input, textarea, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: var(--card); color: var(--text); }
 .checkbox-row { display: flex; gap: 15px; margin: 10px 0; }
-.notification-dot { position: absolute; top: 10px; right: 15%; height: 8px; width: 8px; background: #e74c3c; border-radius: 50%; }ba(52, 152, 219, 0.05); }
-
-.feed-card { 
-    background: var(--card); border: 2px solid rgba(0,0,0,0.08); border-radius: 20px; 
-    padding: 20px; margin-bottom: 20px; position: relative; 
-}
-
-/* Status Styles */
-.status-praise { border: 2px solid var(--praise) !important; background: rgba(241, 196, 15, 0.03); }
-.status-archive { opacity: 0.45; filter: grayscale(60%); }
-
-/* Bottom Nav */
-.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--accent); height: 65px; z-index: 1000; border-top: 1px solid rgba(255,255,255,0.1); }
-.bottom-nav .nav-inner { display: flex; height: 100%; }
-.bottom-nav button { flex: 1; background: none; border: none; color: rgba(255,255,255,0.5); font-weight: bold; cursor: pointer; font-size: 0.85rem; }
-.bottom-nav button.active { color: white; border-top: 4px solid var(--btn); }
-
-/* --- THE ADMIN VISIBILITY FIX --- */
-.admin-only { 
-    display: none !important; 
-}
-
-/* 1. Only show if Admin mode is ON */
-body.show-admin .admin-only { 
-    display: block !important; 
-}
-
-/* 2. HARD LOCK: Hide Study Manager if Study View is NOT visible */
-#view-studies[style*="display: none"] #admin-study-ctrl.admin-only {
-    display: none !important;
-}
-
-/* Buttons & Formatting */
-.ui-btn { padding: 8px 15px; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; font-weight: bold; background: white; }
-.post-btn { background: var(--btn); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
-.prayed-btn, .celeb-btn { border: 1.5px solid var(--btn); background: transparent; color: var(--btn); padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-.prayed-btn { background: #f1c40f; border: none; color: #2c3e50; }
-.delete-btn { background: #e74c3c; color: white; border: none; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; }
-.scripture { font-style: italic; border-left: 5px solid var(--btn); padding-left: 15px; color: var(--btn); font-size: 1.1rem; }
-.item-link { display: inline-block; font-weight: bold; color: var(--btn); text-decoration: none; margin: 8px 0; margin-right: 15px; }
-pre { white-space: pre-wrap; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; font-family: inherit; line-height: 1.6; }
-.timestamp { font-size: 0.7rem; color: #888; display: block; margin-top: 5px; }
+.notification-dot { position: absolute; top: 10px; right: 15%; height: 8px; width: 8px; background: #e74c3c; border-radius: 50%; }

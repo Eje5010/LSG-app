@@ -24,10 +24,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getBibleLink(ref) { return `https://www.bible.com/search/bible?q=${encodeURIComponent(ref.trim())}`; }
 
+    // --- NUCLEAR NAVIGATION LOCK ---
     window.setPage = (page) => {
         document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
         const active = document.getElementById(`view-${page}`);
         if (active) active.style.display = 'block';
+
+        // Check Admin visibility context
+        const isAdmin = document.body.classList.contains('show-admin');
+        const adminCtrl = document.getElementById('admin-study-ctrl');
+        const userCtrl = document.getElementById('user-study-selector');
+
+        if (adminCtrl) {
+            if (page === 'studies' && isAdmin) {
+                adminCtrl.style.setProperty('display', 'block', 'important');
+                if(userCtrl) userCtrl.style.display = 'none';
+            } else {
+                adminCtrl.style.setProperty('display', 'none', 'important');
+                if(userCtrl) userCtrl.style.display = 'block';
+            }
+        }
+
         document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
         const btn = document.getElementById(`nav-${page}`);
         if (btn) btn.classList.add('active');
@@ -55,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         allPrayersData = snap.val();
         const list = document.getElementById('prayer-list');
         if(!allPrayersData) { list.innerHTML = "<p>No prayers yet.</p>"; return; }
-        // Sort: Active first, then Praise, then Archive
         const sorted = Object.entries(allPrayersData).map(([id, val]) => ({ id, ...val })).sort((a,b) => {
             const order = { active: 1, praise: 2, archive: 3 };
             return (order[a.status] || 1) - (order[b.status] || 1) || b.timestamp - a.timestamp;
@@ -63,43 +79,53 @@ document.addEventListener('DOMContentLoaded', () => {
         list.innerHTML = sorted.map(p => {
             const canEdit = document.body.classList.contains('show-admin') || p.ownerId === myId;
             const isPraise = p.status === 'praise';
-            const isArchive = p.status === 'archive';
             return `<div class="feed-card status-${p.status || 'active'}">
                 ${canEdit ? `<div style="float:right; display:flex; gap:5px;">
-                    <button onclick="window.updateStatus('${p.id}','active')" title="Active">📍</button>
-                    <button onclick="window.updateStatus('${p.id}','praise')" title="Praise">🙌</button>
-                    <button onclick="window.updateStatus('${p.id}','archive')" title="Archive">📦</button>
+                    <button onclick="window.updateStatus('${p.id}','active')">📍</button>
+                    <button onclick="window.updateStatus('${p.id}','praise')">🙌</button>
+                    <button onclick="window.updateStatus('${p.id}','archive')">📦</button>
                     <button class="delete-btn" onclick="window.deleteItem('prayers','${p.id}')">🗑️</button>
                 </div>` : ''}
-                <strong>${p.name}${isPraise ? ' — Praise Report! 🙌' : ''}</strong>
-                <p>${p.request}</p>
-                ${!isArchive ? `<div class="prayer-actions"><button class="prayed-btn" onclick="window.incrementTally('prayers','${p.id}','tally')">${isPraise ? 'Amen!' : 'I Prayed!'}</button> 🙏 ${p.tally || 0}</div>` : ''}
+                <strong>${p.name}${isPraise ? ' — Praise! 🙌' : ''}</strong><p>${p.request}</p>
+                ${p.status !== 'archive' ? `<div class="prayer-actions"><button class="prayed-btn" onclick="window.incrementTally('prayers','${p.id}','tally')">${isPraise ? 'Amen!' : 'I Prayed!'}</button> 🙏 ${p.tally || 0}</div>` : ''}
             </div>`;
         }).join('');
     });
 
     onValue(studiesRef, snap => {
         allStudiesRawData = snap.val() || {};
-        const sorted = Object.entries(allStudiesRawData).sort((a,b) => new Date(b[1].date.replace(/-/g, '/')) - new Date(a[1].date.replace(/-/g, '/')));
-        const sel = document.getElementById('study-date');
-        if (sel && sorted.length > 0) {
-            sel.innerHTML = sorted.map(([id, s]) => `<option value="${s.date}">${new Date(s.date.replace(/-/g, '/')).toDateString()}</option>`).join('');
-            const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
-            const bestMatch = Object.values(allStudiesRawData).find(s => s.date >= todayStr) || sorted[sorted.length - 1];
-            sel.value = bestMatch.date;
-            renderStudy(sel.value);
-        }
+        const sorted = Object.entries(allStudiesRawData)
+            .filter(([id, s]) => s && s.date)
+            .sort((a,b) => new Date(b[1].date.replace(/-/g, '/')) - new Date(a[1].date.replace(/-/g, '/')));
+        
+        const adminSel = document.getElementById('study-date');
+        const userSel = document.getElementById('user-study-date');
+        
+        const renderMenu = (sel) => {
+            if (sel && sorted.length > 0) {
+                sel.innerHTML = sorted.map(([id, s]) => `<option value="${s.date}">${new Date(s.date.replace(/-/g, '/')).toDateString()}</option>`).join('');
+                const todayStr = new Date().toISOString().split('T')[0];
+                const best = sorted.find(([id, s]) => s.date >= todayStr) || sorted[0];
+                sel.value = best[1].date;
+                renderStudy(sel.value);
+            }
+        };
+        renderMenu(adminSel);
+        renderMenu(userSel);
     });
 
     onValue(mealsRef, snap => { 
         allMealsData = snap.val() || {}; 
         renderMeals();
-        const sd = document.getElementById('study-date');
-        if(sd?.value) renderStudy(sd.value);
+        const curDate = document.getElementById('user-study-date')?.value || document.getElementById('study-date')?.value;
+        if(curDate) renderStudy(curDate);
     });
 
-    window.handleStudyChange = (val) => { renderStudy(val); };
+    window.handleStudyChange = (val) => {
+        document.getElementById('study-date').value = val;
+        document.getElementById('user-study-date').value = val;
+        renderStudy(val);
+    };
 
     function renderStudy(date) {
         const s = Object.values(allStudiesRawData).find(x => x.date === date);
@@ -149,17 +175,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const dish = prompt("What are you bringing?"); if(!dish) return;
         set(ref(db, `meals/${date}`), { name, dish, ownerId: myId });
     };
-    window.signOutAdmin = () => { document.body.classList.remove('show-admin'); };
-    window.openAdmin = () => { if(prompt("Code:") === ADMIN_CODE) document.body.classList.add('show-admin'); };
-    window.openNewStudyModal = () => { document.getElementById('adminModal').style.display='block'; };
-    
-    document.getElementById('saveStudyBtn').onclick = () => {
-        const date = document.getElementById('newDate').value;
-        if(!date) return alert("Date required");
-        set(ref(db, `studies/${date.replace(/-/g, '')}`), { date, passage: document.getElementById('newPassage').value, activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value });
-        document.getElementById('adminModal').style.display='none';
+
+    window.signOutAdmin = () => {
+        document.body.classList.remove('show-admin');
+        document.getElementById('signOutBtn').style.display = 'none';
+        document.getElementById('adminBtn').style.display = 'block';
+        window.setPage('studies');
     };
 
+    window.openAdmin = () => {
+        if(prompt("Code:") === ADMIN_CODE) {
+            document.body.classList.add('show-admin');
+            document.getElementById('signOutBtn').style.display = 'block';
+            document.getElementById('adminBtn').style.display = 'none';
+            window.setPage('studies');
+        }
+    };
+
+    window.openNewStudyModal = () => { document.getElementById('adminModal').style.display='block'; };
+    
     document.getElementById('editStudyBtn').onclick = () => {
         const s = Object.values(allStudiesRawData).find(x => x.date === document.getElementById('study-date').value);
         if(s) {
@@ -170,6 +204,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('adminModal').style.display = 'block';
         }
     };
+
+    document.getElementById('saveStudyBtn').onclick = () => {
+        const date = document.getElementById('newDate').value;
+        set(ref(db, `studies/${date.replace(/-/g, '')}`), { date, passage: document.getElementById('newPassage').value, activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value });
+        document.getElementById('adminModal').style.display='none';
+    };
+
     document.getElementById('theme-toggle').onchange = (e) => document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
     window.setPage('studies');
 });
