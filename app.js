@@ -22,49 +22,41 @@ document.addEventListener('DOMContentLoaded', () => {
     let myId = localStorage.getItem('lsg_user_id') || ('user_' + Math.random().toString(36).substr(2, 9));
     localStorage.setItem('lsg_user_id', myId);
 
-function getBibleLink(ref) {
-    // 1. Dictionary of Book Name to OSIS Code
-    const bookMap = {
-        "Genesis": "GEN", "Exodus": "EXO", "Leviticus": "LEV", "Numbers": "NUM", "Deuteronomy": "DEU",
-        "Joshua": "JOS", "Judges": "JDG", "Ruth": "RUT", "1 Samuel": "1SA", "2 Samuel": "2SA",
-        "1 Kings": "1KI", "2 Kings": "2KI", "1 Chronicles": "1CH", "2 Chronicles": "2CH",
-        "Ezra": "EZR", "Nehemiah": "NEH", "Esther": "EST", "Job": "JOB", "Psalms": "PSA", "Psalm": "PSA",
-        "Proverbs": "PRO", "Ecclesiastes": "ECC", "Song of Solomon": "SNG", "Isaiah": "ISA",
-        "Jeremiah": "JER", "Lamentations": "LAM", "Ezekiel": "EZK", "Daniel": "DAN", "Hosea": "HOS",
-        "Joel": "JOE", "Amos": "AMO", "Obadiah": "OBA", "Jonah": "JON", "Micah": "MIC", "Nahum": "NAM",
-        "Habakkuk": "HAB", "Zephaniah": "ZEP", "Haggai": "HAG", "Zechariah": "ZEC", "Malachi": "MAL",
-        "Matthew": "MAT", "Mark": "MRK", "Luke": "LUK", "John": "JHN", "Acts": "ACT", "Romans": "ROM",
-        "1 Corinthians": "1CO", "2 Corinthians": "2CO", "Galatians": "GAL", "Ephesians": "EPH",
-        "Philippians": "PHP", "Colossians": "COL", "1 Thessalonians": "1TH", "2 Thessalonians": "2TH",
-        "1 Timothy": "1TI", "2 Timothy": "2TI", "Titus": "TIT", "Philemon": "PHM", "Hebrews": "HEB",
-        "James": "JAS", "1 Peter": "1PE", "2 Peter": "2PE", "1 John": "1JN", "2 John": "2JN",
-        "3 John": "3JN", "Jude": "JUD", "Revelation": "REV"
-    };
-
-    // 2. Clean and Parse the input (e.g., "1 Samuel 3:1-10")
-    let clean = ref.trim();
-    let bookName = "";
-    let chapterVerse = "";
-
-    // Check for books starting with a number (1 Samuel, etc)
-    if (/^\d/.test(clean)) {
-        const parts = clean.split(' ');
-        bookName = parts[0] + " " + parts[1];
-        chapterVerse = parts.slice(2).join('');
-    } else {
-        const parts = clean.split(' ');
-        bookName = parts[0];
-        chapterVerse = parts.slice(1).join('');
+    // --- BIBLE LINK LOGIC (OSIS 3-LETTER CODES) ---
+    function getBibleLink(refInput) {
+        const bookMap = {
+            "Genesis": "GEN", "Exodus": "EXO", "Leviticus": "LEV", "Numbers": "NUM", "Deuteronomy": "DEU",
+            "Joshua": "JOS", "Judges": "JDG", "Ruth": "RUT", "1 Samuel": "1SA", "2 Samuel": "2SA",
+            "1 Kings": "1KI", "2 Kings": "2KI", "1 Chronicles": "1CH", "2 Chronicles": "2CH",
+            "Ezra": "EZR", "Nehemiah": "NEH", "Esther": "EST", "Job": "JOB", "Psalms": "PSA", "Psalm": "PSA",
+            "Proverbs": "PRO", "Ecclesiastes": "ECC", "Song of Solomon": "SNG", "Isaiah": "ISA",
+            "Jeremiah": "JER", "Lamentations": "LAM", "Ezekiel": "EZK", "Daniel": "DAN", "Hosea": "HOS",
+            "Joel": "JOE", "Amos": "AMO", "Obadiah": "OBA", "Jonah": "JON", "Micah": "MIC", "Nahum": "NAM",
+            "Habakkuk": "HAB", "Zephaniah": "ZEP", "Haggai": "HAG", "Zechariah": "ZEC", "Malachi": "MAL",
+            "Matthew": "MAT", "Mark": "MRK", "Luke": "LUK", "John": "JHN", "Acts": "ACT", "Romans": "ROM",
+            "1 Corinthians": "1CO", "2 Corinthians": "2CO", "Galatians": "GAL", "Ephesians": "EPH",
+            "Philippians": "PHP", "Colossians": "COL", "1 Thessalonians": "1TH", "2 Thessalonians": "2TH",
+            "1 Timothy": "1TI", "2 Timothy": "2TI", "Titus": "TIT", "Philemon": "PHM", "Hebrews": "HEB",
+            "James": "JAS", "1 Peter": "1PE", "2 Peter": "2PE", "1 John": "1JN", "2 John": "2JN",
+            "3 John": "3JN", "Jude": "JUD", "Revelation": "REV"
+        };
+        let clean = refInput.trim();
+        let bookName = "", chV = "";
+        if (/^\d/.test(clean)) {
+            const pts = clean.split(' ');
+            bookName = pts[0] + " " + pts[1];
+            chV = pts.slice(2).join('');
+        } else {
+            const pts = clean.split(' ');
+            bookName = pts[0];
+            chV = pts.slice(1).join('');
+        }
+        const code = bookMap[bookName] || bookName.substring(0, 3).toUpperCase();
+        const finalRef = (code + "." + chV).replace(/:/g, '.').replace(/\s+/g, '');
+        return `https://www.bible.com/bible/59/${finalRef}`;
     }
 
-    // 3. Get Code and Format for YouVersion
-    const code = bookMap[bookName] || bookName.substring(0, 3).toUpperCase();
-    const finalRef = (code + "." + chapterVerse).replace(/:/g, '.');
-
-    // Return the ESV (59) deep link
-    return `https://www.bible.com/bible/59/${finalRef}`;
-}
-
+    // --- NAVIGATION ---
     window.setPage = (page) => {
         document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
         const active = document.getElementById(`view-${page}`);
@@ -83,7 +75,6 @@ function getBibleLink(ref) {
                 if(userCtrl) userCtrl.style.display = 'block';
             }
         }
-
         document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
         const btn = document.getElementById(`nav-${page}`);
         if (btn) btn.classList.add('active');
@@ -95,6 +86,7 @@ function getBibleLink(ref) {
         if (el) el.style.display = document.getElementById(`check${t}`).checked ? 'block' : 'none';
     };
 
+    // --- DATA LISTENERS ---
     onValue(learnsRef, snap => { 
         allLearnsData = snap.val(); 
         const list = document.getElementById('learning-list');
@@ -102,7 +94,7 @@ function getBibleLink(ref) {
         const all = Object.entries(allLearnsData).map(([id, val]) => ({ id, ...val })).sort((a,b) => b.timestamp - a.timestamp);
         list.innerHTML = all.map(l => {
             const canEdit = document.body.classList.contains('show-admin') || l.ownerId === myId;
-            return `<div class="feed-card">${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}<strong>${l.name}</strong><h3 style="margin:5px 0;">${l.title}</h3><span class="timestamp">Shared: ${new Date(l.timestamp).toLocaleDateString()}</span>${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip}</a>` : ''}${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 Link</a>` : ''}<div class="editable-note">${l.notes}</div><div class="prayer-actions"><button class="celeb-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">✨</button> ${l.celebs || 0}</div></div>`;
+            return `<div class="feed-card">${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}<strong>${l.name}</strong><h3 style="margin:5px 0;">${l.title}</h3><span class="timestamp">${new Date(l.timestamp).toLocaleDateString()}</span>${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip}</a>` : ''}${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 Link</a>` : ''}<div class="editable-note">${l.notes}</div><div class="prayer-actions"><button class="celeb-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">✨</button> ${l.celebs || 0}</div></div>`;
         }).join('');
     });
 
@@ -142,17 +134,22 @@ function getBibleLink(ref) {
         const adminSel = document.getElementById('study-date');
         const userSel = document.getElementById('user-study-date');
         
-        const renderMenu = (sel) => {
-            if (sel && sorted.length > 0) {
-                sel.innerHTML = sorted.map(([id, s]) => `<option value="${s.date}">${new Date(s.date.replace(/-/g, '/')).toDateString()}</option>`).join('');
-                const todayStr = new Date().toISOString().split('T')[0];
-                const best = sorted.find(([id, s]) => s.date >= todayStr) || sorted[0];
-                sel.value = best[1].date;
-                renderStudy(sel.value);
-            }
-        };
-        renderMenu(adminSel);
-        renderMenu(userSel);
+        if (sorted.length > 0) {
+            const options = sorted.map(([id, s]) => `<option value="${s.date}">${new Date(s.date.replace(/-/g, '/')).toDateString()}</option>`).join('');
+            if(adminSel) adminSel.innerHTML = options;
+            if(userSel) userSel.innerHTML = options;
+
+            // SMART DEFAULT (Local Time)
+            const now = new Date();
+            const offset = now.getTimezoneOffset() * 60000;
+            const localToday = new Date(now - offset).toISOString().split('T')[0];
+            const upcoming = sorted.slice().reverse().find(([id, s]) => s.date >= localToday);
+            const defaultDate = upcoming ? upcoming[1].date : sorted[0][1].date;
+
+            if(adminSel) adminSel.value = defaultDate;
+            if(userSel) userSel.value = defaultDate;
+            renderStudy(defaultDate);
+        }
     });
 
     onValue(mealsRef, snap => { 
@@ -216,42 +213,19 @@ function getBibleLink(ref) {
         set(ref(db, `meals/${date}`), { name, dish, ownerId: myId });
     };
 
-    window.signOutAdmin = () => {
-        document.body.classList.remove('show-admin');
-        document.getElementById('signOutBtn').style.display = 'none';
-        document.getElementById('adminBtn').style.display = 'block';
-        window.setPage('studies');
-    };
-
-    window.openAdmin = () => {
-        if(prompt("Code:") === ADMIN_CODE) {
-            document.body.classList.add('show-admin');
-            document.getElementById('signOutBtn').style.display = 'block';
-            document.getElementById('adminBtn').style.display = 'none';
-            window.setPage('studies');
-        }
-    };
-
+    window.signOutAdmin = () => { document.body.classList.remove('show-admin'); document.getElementById('signOutBtn').style.display='none'; document.getElementById('adminBtn').style.display='block'; window.setPage('studies'); };
+    window.openAdmin = () => { if(prompt("Code:") === ADMIN_CODE) { document.body.classList.add('show-admin'); document.getElementById('signOutBtn').style.display='block'; document.getElementById('adminBtn').style.display='none'; window.setPage('studies'); } };
     window.openNewStudyModal = () => { document.getElementById('adminModal').style.display='block'; };
     
     document.getElementById('saveStudyBtn').onclick = () => {
-        const date = document.getElementById('newDate').value;
-        if(!date) return alert("Date required");
+        const date = document.getElementById('newDate').value; if(!date) return;
         set(ref(db, `studies/${date.replace(/-/g, '')}`), { date, passage: document.getElementById('newPassage').value, activity: document.getElementById('newActivity').value, lyrics: document.getElementById('newLyrics').value });
         document.getElementById('adminModal').style.display='none';
     };
-
     document.getElementById('editStudyBtn').onclick = () => {
         const s = Object.values(allStudiesRawData).find(x => x.date === document.getElementById('study-date').value);
-        if(s) {
-            document.getElementById('newDate').value = s.date;
-            document.getElementById('newPassage').value = s.passage;
-            document.getElementById('newActivity').value = s.activity;
-            document.getElementById('newLyrics').value = s.lyrics;
-            document.getElementById('adminModal').style.display = 'block';
-        }
+        if(s) { document.getElementById('newDate').value = s.date; document.getElementById('newPassage').value = s.passage; document.getElementById('newActivity').value = s.activity; document.getElementById('newLyrics').value = s.lyrics; document.getElementById('adminModal').style.display = 'block'; }
     };
-
     document.getElementById('theme-toggle').onchange = (e) => document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
     window.setPage('studies');
 });

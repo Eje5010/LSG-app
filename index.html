@@ -67,17 +67,16 @@
         </div>
 
         <div id="view-prayers" class="page-view" style="display:none;">
-            <section class="card"><h2>Prayer Wall</h2><div id="prayer-list"></div></section>
             <section class="card no-print">
                 <h3>Post a Request</h3>
                 <input type="text" id="prayerName" placeholder="Your Name">
                 <textarea id="prayerText" placeholder="What can we pray for?"></textarea>
                 <button onclick="window.postPrayer()" class="post-btn">Post Request</button>
             </section>
+            <section class="card"><h2>Prayer Wall</h2><div id="prayer-list"></div></section>
         </div>
 
         <div id="view-learnings" class="page-view" style="display:none;">
-            <section class="card"><h2>Community Learning</h2><div id="learning-list"></div></section>
             <section class="card no-print">
                 <h3>Share Your Learning</h3>
                 <input type="text" id="learnName" placeholder="Your Name">
@@ -86,11 +85,12 @@
                     <label><input type="checkbox" id="checkScrip" onchange="window.toggleExtra('Scrip')"> Add Scripture</label>
                     <label><input type="checkbox" id="checkUrl" onchange="window.toggleExtra('Url')"> Add URL</label>
                 </div>
-                <div id="scripInputArea" style="display:none;"><input type="text" id="learnScrip" placeholder="Scripture"></div>
+                <div id="scripInputArea" style="display:none;"><input type="text" id="learnScrip" placeholder="Scripture (e.g. John 3:16)"></div>
                 <div id="urlInputArea" style="display:none;"><input type="url" id="learnUrl" placeholder="https://..."></div>
                 <textarea id="learnNotes" placeholder="Notes..."></textarea>
                 <button onclick="window.postLearning()" class="post-btn">Share Insights</button>
             </section>
+            <section class="card"><h2>Community Learning</h2><div id="learning-list"></div></section>
         </div>
 
         <div id="view-meals" class="page-view" style="display:none;">
