@@ -209,17 +209,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prayerText').value = "";
     };
     window.updatePrayerText = (id, newText) => {
-        // Strips out any accidental invisible line breaks injected by the browser layout
         const cleanText = newText.replace(/[\r\n]+/g, " ").trim();
-        if (cleanText) set(ref(getDatabase(), `prayers/${id}/request`), cleanText);
+        if (cleanText) set(ref(db, `prayers/${id}/request`), cleanText);
     };
 
     window.updateStatus = (id, s) => set(ref(db, `prayers/${id}/status`), s);
     window.deleteItem = (p, id) => { if(confirm("Delete?")) set(ref(db, p === 'meals' ? `meals/${id}` : `${p}/${id}`), null); };
     window.updateLearningNotes = (id, newNotes) => {
-        // Strips out hidden formatting elements to protect the payload layout
         const cleanNotes = newNotes.replace(/[\r\n]+/g, " ").trim();
-        if (cleanNotes) set(ref(getDatabase(), `learnings/${id}/notes`), cleanNotes);
+        if (cleanNotes) set(ref(db, `learnings/${id}/notes`), cleanNotes);
     };
     window.incrementTally = (p, id, f) => {
         const d = p === 'prayers' ? allPrayersData : allLearnsData;
@@ -232,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dish === null) return; // user cancelled
         
         // We pass myId directly to ensure Firebase writes cleanly without outer scope variables
-        set(ref(getDatabase(), `meals/${date}`), { 
+        set(ref(db, `meals/${date}`), { 
             name: name || "Friend", 
             dish: dish || "Something Good", 
             ownerId: myId 
