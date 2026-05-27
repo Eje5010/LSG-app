@@ -94,7 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const all = Object.entries(allLearnsData).map(([id, val]) => ({ id, ...val })).sort((a,b) => b.timestamp - a.timestamp);
         list.innerHTML = all.map(l => {
             const canEdit = document.body.classList.contains('show-admin') || l.ownerId === myId;
-            return `<div class="feed-card">${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}<strong>${l.name}</strong><h3 style="margin:5px 0;">${l.title}</h3><span class="timestamp">${new Date(l.timestamp).toLocaleDateString()}</span>${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip}</a>` : ''}${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 Link</a>` : ''}<div class="editable-note">${l.notes}</div><div class="prayer-actions"><button class="celeb-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">✨</button> ${l.celebs || 0}</div></div>`;
+            return `<div class="feed-card">${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}<strong>${l.name}</strong><h3 style="margin:5px 0;">${l.title}</h3><span class="timestamp">${new Date(l.timestamp).toLocaleDateString()}</span>${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip}</a>` : ''}${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 Link</a>` : ''}<div class="${canEdit ? 'editable-note admin-editable' : 'editable-note'}" 
+     contenteditable="${canEdit}" 
+     onblur="window.updateLearningNotes('${l.id}', this.innerText)">${l.notes}</div><div class="prayer-actions"><button class="celeb-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">✨</button> ${l.celebs || 0}</div></div>`;
         }).join('');
     });
 
@@ -119,7 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>` : ''}
                 <strong>${p.name}${isPraise ? ' — Praise! 🙌' : ''}</strong>
                 <span class="timestamp">${dateDisplay}</span>
-                <p>${p.request}</p>
+                <p contenteditable="${canEdit}" 
+   style="${canEdit ? 'border-bottom: 1px dashed var(--btn); padding-bottom: 5px;' : ''}"
+   onblur="window.updatePrayerText('${p.id}', this.innerText)">${p.request}</p>
                 ${p.status !== 'archive' ? `<div class="prayer-actions"><button class="prayed-btn" onclick="window.incrementTally('prayers','${p.id}','tally')">${isPraise ? 'Amen!' : 'I Prayed!'}</button> 🙏 ${p.tally || 0}</div>` : ''}
             </div>`;
         }).join('');
@@ -183,7 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
         list.innerHTML = weds.map(date => {
             const claim = allMealsData[date];
             const isAdmin = document.body.classList.contains('show-admin');
-            if(claim) return `<div class="meal-slot"><strong>${date}</strong>: ${claim.name} (${claim.dish}) ${(isAdmin || claim.ownerId === myId) ? `<button class='delete-btn' onclick="window.deleteItem('meals','${date}')">🗑️</button>` : ''}</div>`;
+            if(claim) {
+                const displayStr = `<strong>${date}</strong>: ${claim.name} (${claim.dish})`;
+                const adminAction = isAdmin ? `onclick="window.pClaim('${date}', '${claim.name}', '${claim.dish}')" style="cursor:pointer;"` : '';
+                return `<div class="meal-slot" ${adminAction}>${displayStr} ${(isAdmin || claim.ownerId === myId) ? `<button class='delete-btn' onclick="window.deleteItem('meals','${date}'); event.stopPropagation();">🗑️</button>` : ''}</div>`;
+            }
             return `<div class="meal-slot"><strong>${date}</strong>: <button class="ui-btn" onclick="window.pClaim('${date}')">Sign Up</button></div>`;
         }).join('');
     }
@@ -200,17 +208,31 @@ document.addEventListener('DOMContentLoaded', () => {
         set(push(prayersRef), { name: document.getElementById('prayerName').value || "Friend", request: txt, timestamp: Date.now(), ownerId: myId, status: "active" });
         document.getElementById('prayerText').value = "";
     };
+    window.updatePrayerText = (id, newText) => {
+        set(ref(getDatabase(), `prayers/${id}/request`), newText.trim());
+    };
 
     window.updateStatus = (id, s) => set(ref(db, `prayers/${id}/status`), s);
     window.deleteItem = (p, id) => { if(confirm("Delete?")) set(ref(db, p === 'meals' ? `meals/${id}` : `${p}/${id}`), null); };
+    window.updateLearningNotes = (id, newNotes) => {
+    // Only update if it's actually an admin or the owner
+    set(ref(getDatabase(), `learnings/${id}/notes`), newNotes.trim());
+    };
     window.incrementTally = (p, id, f) => {
         const d = p === 'prayers' ? allPrayersData : allLearnsData;
         if(d && d[id]) set(ref(db, `${p}/${id}/${f}`), (d[id][f] || 0) + 1);
     };
-    window.pClaim = (date) => {
-        const name = prompt("Your Name:"); if(!name) return;
-        const dish = prompt("What are you bringing?"); if(!dish) return;
-        set(ref(db, `meals/${date}`), { name, dish, ownerId: myId });
+    window.pClaim = (date, currentName = "", currentDish = "") => {
+        const name = prompt("Name:", currentName || ""); 
+        if (name === null) return; // cancelled
+        const dish = prompt("What are you bringing?", currentDish || ""); 
+        if (dish === null) return; // cancelled
+        
+        set(ref(getDatabase(), `meals/${date}`), { 
+            name: name || "Friend", 
+            dish: dish || "Something Good", 
+            ownerId: currentName ? (allMealsData[date]?.ownerId || myId) : myId 
+        });
     };
 
     window.signOutAdmin = () => { document.body.classList.remove('show-admin'); document.getElementById('signOutBtn').style.display='none'; document.getElementById('adminBtn').style.display='block'; window.setPage('studies'); };
