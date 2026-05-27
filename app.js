@@ -209,14 +209,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prayerText').value = "";
     };
     window.updatePrayerText = (id, newText) => {
-        set(ref(getDatabase(), `prayers/${id}/request`), newText.trim());
+        // Strips out any accidental invisible line breaks injected by the browser layout
+        const cleanText = newText.replace(/[\r\n]+/g, " ").trim();
+        if (cleanText) set(ref(getDatabase(), `prayers/${id}/request`), cleanText);
     };
 
     window.updateStatus = (id, s) => set(ref(db, `prayers/${id}/status`), s);
     window.deleteItem = (p, id) => { if(confirm("Delete?")) set(ref(db, p === 'meals' ? `meals/${id}` : `${p}/${id}`), null); };
     window.updateLearningNotes = (id, newNotes) => {
-    // Only update if it's actually an admin or the owner
-    set(ref(getDatabase(), `learnings/${id}/notes`), newNotes.trim());
+        // Strips out hidden formatting elements to protect the payload layout
+        const cleanNotes = newNotes.replace(/[\r\n]+/g, " ").trim();
+        if (cleanNotes) set(ref(getDatabase(), `learnings/${id}/notes`), cleanNotes);
     };
     window.incrementTally = (p, id, f) => {
         const d = p === 'prayers' ? allPrayersData : allLearnsData;
@@ -224,14 +227,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     window.pClaim = (date, currentName = "", currentDish = "") => {
         const name = prompt("Name:", currentName || ""); 
-        if (name === null) return; // cancelled
+        if (name === null) return; // user cancelled
         const dish = prompt("What are you bringing?", currentDish || ""); 
-        if (dish === null) return; // cancelled
+        if (dish === null) return; // user cancelled
         
+        // We pass myId directly to ensure Firebase writes cleanly without outer scope variables
         set(ref(getDatabase(), `meals/${date}`), { 
             name: name || "Friend", 
             dish: dish || "Something Good", 
-            ownerId: currentName ? (allMealsData[date]?.ownerId || myId) : myId 
+            ownerId: myId 
         });
     };
 
