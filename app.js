@@ -87,22 +87,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- DATA LISTENERS ---
-    onValue(learnsRef, snap => { 
-        allLearnsData = snap.val(); 
+    window.renderLearnings = () => {
         const list = document.getElementById('learning-list');
+        if(!list) return;
         if(!allLearnsData) { list.innerHTML = "<p>No insights yet.</p>"; return; }
         const all = Object.entries(allLearnsData).map(([id, val]) => ({ id, ...val })).sort((a,b) => b.timestamp - a.timestamp);
         list.innerHTML = all.map(l => {
             const canEdit = document.body.classList.contains('show-admin') || l.ownerId === myId;
-            return `<div class="feed-card">${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}<strong>${l.name}</strong><h3 style="margin:5px 0;">${l.title}</h3><span class="timestamp">${new Date(l.timestamp).toLocaleDateString()}</span>${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip}</a>` : ''}${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 Link</a>` : ''}<div class="${canEdit ? 'editable-note admin-editable' : 'editable-note'}" 
-     contenteditable="${canEdit}" 
-     onblur="window.updateLearningNotes('${l.id}', this.innerText)">${l.notes}</div><div class="prayer-actions"><button class="celeb-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">✨</button> ${l.celebs || 0}</div></div>`;
+            return `<div class="feed-card">${canEdit ? `<button class="delete-btn" onclick="window.deleteItem('learnings','${l.id}')">Delete</button>` : ''}<strong>${l.name}</strong><h3 style="margin:5px 0;">${l.title}</h3><span class="timestamp">${new Date(l.timestamp).toLocaleDateString()}</span>${l.scrip ? `<a href="${getBibleLink(l.scrip)}" target="_blank" class="item-link">📖 ${l.scrip}</a>` : ''}${l.url ? `<a href="${l.url}" target="_blank" class="item-link">🔗 Link</a>` : ''}<div class="${canEdit ? 'editable-note admin-editable' : 'editable-note'}" contenteditable="${canEdit}" onblur="window.updateLearningNotes('${l.id}', this.innerText)">${l.notes}</div><div class="prayer-actions"><button class="celeb-btn" onclick="window.incrementTally('learnings','${l.id}','celebs')">✨</button> ${l.celebs || 0}</div></div>`;
         }).join('');
+    };
+    // Keep the listener lightweight
+    onValue(learnsRef, snap => { 
+        allLearnsData = snap.val(); 
+        window.renderLearnings();
     });
 
-    onValue(prayersRef, snap => {
-        allPrayersData = snap.val();
+    window.renderPrayers = () => {
         const list = document.getElementById('prayer-list');
+        if(!list) return;
         if(!allPrayersData) { list.innerHTML = "<p>No prayers yet.</p>"; return; }
         const sorted = Object.entries(allPrayersData).map(([id, val]) => ({ id, ...val })).sort((a,b) => {
             const order = { active: 1, praise: 2, archive: 3 };
@@ -121,12 +124,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>` : ''}
                 <strong>${p.name}${isPraise ? ' — Praise! 🙌' : ''}</strong>
                 <span class="timestamp">${dateDisplay}</span>
-                <p contenteditable="${canEdit}" 
-   style="${canEdit ? 'border-bottom: 1px dashed var(--btn); padding-bottom: 5px;' : ''}"
-   onblur="window.updatePrayerText('${p.id}', this.innerText)">${p.request}</p>
+                <p contenteditable="${canEdit}" style="${canEdit ? 'border-bottom: 1px dashed var(--btn); padding-bottom: 5px;' : ''}" onblur="window.updatePrayerText('${p.id}', this.innerText)">${p.request}</p>
                 ${p.status !== 'archive' ? `<div class="prayer-actions"><button class="prayed-btn" onclick="window.incrementTally('prayers','${p.id}','tally')">${isPraise ? 'Amen!' : 'I Prayed!'}</button> 🙏 ${p.tally || 0}</div>` : ''}
             </div>`;
         }).join('');
+    };
+    // Keep the listener lightweight
+    onValue(prayersRef, snap => {
+        allPrayersData = snap.val();
+        window.renderPrayers();
     });
 
     onValue(studiesRef, snap => {
@@ -237,8 +243,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    window.signOutAdmin = () => { document.body.classList.remove('show-admin'); document.getElementById('signOutBtn').style.display='none'; document.getElementById('adminBtn').style.display='block'; window.setPage('studies'); };
-    window.openAdmin = () => { if(prompt("Code:") === ADMIN_CODE) { document.body.classList.add('show-admin'); document.getElementById('signOutBtn').style.display='block'; document.getElementById('adminBtn').style.display='none'; window.setPage('studies'); } };
+    window.signOutAdmin = () => { 
+        document.body.classList.remove('show-admin'); 
+        document.getElementById('signOutBtn').style.display='none'; 
+        document.getElementById('adminBtn').style.display='block'; 
+        // Force everything to redraw as a standard user
+        window.renderPrayers();
+        window.renderLearnings();
+        renderMeals();
+        window.setPage('studies'); 
+    };
+
+    window.openAdmin = () => { 
+        if(prompt("Code:") === ADMIN_CODE) { 
+            document.body.classList.add('show-admin'); 
+            document.getElementById('signOutBtn').style.display='block'; 
+            document.getElementById('adminBtn').style.display='none'; 
+            // Force everything to redraw with admin tools visible
+            window.renderPrayers();
+            window.renderLearnings();
+            renderMeals();
+            window.setPage('studies'); 
+        } 
+    };
+    
     window.openNewStudyModal = () => { document.getElementById('adminModal').style.display='block'; };
     
     document.getElementById('saveStudyBtn').onclick = () => {

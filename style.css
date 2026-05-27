@@ -29,3 +29,19 @@ pre { white-space: pre-wrap; background: rgba(0,0,0,0.03); padding: 15px; border
 input, textarea, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: var(--card); color: var(--text); }
 .checkbox-row { display: flex; gap: 15px; margin: 10px 0; }
 .notification-dot { position: absolute; top: 10px; right: 15%; height: 8px; width: 8px; background: #e74c3c; border-radius: 50%; }
+/* Ensure the admin control rows display clearly when logged in */
+body.show-admin .feed-card div[style*="float:right"] {
+    display: flex !important;
+}
+
+/* Make sure trash cans bypass any default hide settings */
+body.show-admin .delete-btn {
+    display: inline-block !important;
+}
+
+/* Optional: Gives admins a clear visual indicator that a text field can be edited */
+body.show-admin [contenteditable="true"] {
+    border-bottom: 1px dashed var(--btn) !important;
+    background: rgba(52, 152, 219, 0.02);
+    padding-bottom: 2px;
+}
