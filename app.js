@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(adminSel) adminSel.value = defaultDate;
             if(userSel) userSel.value = defaultDate;
             renderStudy(defaultDate);
+            renderMeals(); // Force the meal slots to build using these study dates
         }
     });
 
@@ -186,19 +187,40 @@ document.addEventListener('DOMContentLoaded', () => {
         else { mc.style.display = 'none'; }
     }
 
-    function renderMeals() {
-        const list = document.getElementById('meal-list'); if (!list) return;
-        let d = new Date(); d.setDate(d.getDate() + (3 - d.getDay() + 7) % 7);
-        const weds = []; for(let i=0; i<4; i++) { weds.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`); d.setDate(d.getDate()+7); }
-        list.innerHTML = weds.map(date => {
+function renderMeals() {
+        const list = document.getElementById('meal-list'); 
+        if (!list) return;
+
+        // 1. Get all published studies, sorted from oldest to newest (so dates go forward in time)
+        const sortedStudies = Object.entries(allStudiesRawData)
+            .filter(([id, s]) => s && s.date)
+            .sort((a, b) => new Date(a[1].date.replace(/-/g, '/')) - new Date(b[1].date.replace(/-/g, '/')));
+
+        if (sortedStudies.length === 0) {
+            list.innerHTML = "<p>No upcoming studies scheduled yet to sign up for meals.</p>";
+            return;
+        }
+
+        // 2. Loop through your existing studies instead of calculating random dates
+        list.innerHTML = sortedStudies.map(([id, s]) => {
+            const date = s.date;
             const claim = allMealsData[date];
             const isAdmin = document.body.classList.contains('show-admin');
-            if(claim) {
-                const displayStr = `<strong>${date}</strong>: ${claim.name} (${claim.dish})`;
+            
+            // Format a nice display date (e.g., "Thursday, Jun 4, 2026")
+            const dateLabel = new Date(date.replace(/-/g, '/')).toLocaleDateString(undefined, { 
+                weekday: 'long', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+
+            if (claim) {
+                const displayStr = `<strong>${dateLabel}</strong>: ${claim.name} (${claim.dish})`;
                 const adminAction = isAdmin ? `onclick="window.pClaim('${date}', '${claim.name}', '${claim.dish}')" style="cursor:pointer;"` : '';
                 return `<div class="meal-slot" ${adminAction}>${displayStr} ${(isAdmin || claim.ownerId === myId) ? `<button class='delete-btn' onclick="window.deleteItem('meals','${date}'); event.stopPropagation();">🗑️</button>` : ''}</div>`;
             }
-            return `<div class="meal-slot"><strong>${date}</strong>: <button class="ui-btn" onclick="window.pClaim('${date}')">Sign Up</button></div>`;
+            
+            return `<div class="meal-slot"><strong>${dateLabel}</strong>: <button class="ui-btn" onclick="window.pClaim('${date}')">Sign Up</button></div>`;
         }).join('');
     }
 
