@@ -191,9 +191,14 @@ function renderMeals() {
         const list = document.getElementById('meal-list'); 
         if (!list) return;
 
-        // 1. Get all published studies, sorted from oldest to newest (so dates go forward in time)
+        // Get "Today" in YYYY-MM-DD format based on your LOCAL timezone
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const localToday = new Date(now - offset).toISOString().split('T')[0];
+
+        // 1. Get published studies, filter out past ones, and sort oldest to newest
         const sortedStudies = Object.entries(allStudiesRawData)
-            .filter(([id, s]) => s && s.date)
+            .filter(([id, s]) => s && s.date && s.date >= localToday)
             .sort((a, b) => new Date(a[1].date.replace(/-/g, '/')) - new Date(b[1].date.replace(/-/g, '/')));
 
         if (sortedStudies.length === 0) {
